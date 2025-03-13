@@ -91,12 +91,10 @@ for file_idx, file_info in enumerate(files_and_keys):
                 for key in keys[:-2]:  # 避免重复处理经纬度
 
                     if key == "nlevsoi":
-                        print("pass ")
                         continue  # 跳过当前迭代，继续下一次循环
                     dataset = f[key]
                     data = dataset[0, lat_idx, lon_idx] if dataset.ndim == 3 else dataset[lat_idx, lon_idx]
                     temp_data[f"{file_basename}_{key}"] = data
-
                 all_data.append(temp_data)
 
             temp_df = pd.DataFrame(all_data).set_index(['lat', 'lon'])
@@ -107,56 +105,55 @@ for file_idx, file_info in enumerate(files_and_keys):
             merged_df = merged_df.merge(temp_df, left_index=True, right_index=True, how='left')
         else:
 
-    #         lat = f[keys[0]][:]  # 获取纬度数据
-    #         lon = f[keys[1]][:]  # 获取经度数据
+            lat = f[keys[0]][:]  # 获取纬度数据
+            lon = f[keys[1]][:]  # 获取经度数据
     
-    #         # 确保 lat 和 lon 是 numpy 数组
-    #         lat = np.array(lat)
-    #         lon = np.array(lon)
-    #         # 遍历原始 CSV 文件中的每一行数据
-    #         for coord_idx, (_, row) in enumerate(coordinates.iterrows()):
-    #             lat_val = row['lat']
-    #             lon_val = row['lon']
+            # 确保 lat 和 lon 是 numpy 数组
+            lat = np.array(lat)
+            lon = np.array(lon)
+            # 遍历原始 CSV 文件中的每一行数据
+            for coord_idx, (_, row) in enumerate(coordinates.iterrows()):
+                lat_val = row['lat']
+                lon_val = row['lon']
 
-    # # 确保目标经纬度值在数据的有效范围内
-    #             if lat_val < lat.min() or lat_val > lat.max() or lon_val < lon.min() or lon_val > lon.max():
-    #                 raise ValueError(f"Error: Coordinates ({lat_val}, {lon_val}) are out of bounds. "
-    #                                 f"Valid range: lat ({lat.min()} to {lat.max()}), lon ({lon.min()} to {lon.max()})")
+    # 确保目标经纬度值在数据的有效范围内
+                if lat_val < lat.min() or lat_val > lat.max() or lon_val < lon.min() or lon_val > lon.max():
+                    raise ValueError(f"Error: Coordinates ({lat_val}, {lon_val}) are out of bounds. "
+                                    f"Valid range: lat ({lat.min()} to {lat.max()}), lon ({lon.min()} to {lon.max()})")
 
-    #             # 找到与给定经纬度最接近的索引
-    #             lat_idx = np.argmin(np.abs(lat - lat_val))
-    #             lon_idx = np.argmin(np.abs(lon - lon_val))
+                # 找到与给定经纬度最接近的索引
+                lat_idx = np.argmin(np.abs(lat - lat_val))
+                lon_idx = np.argmin(np.abs(lon - lon_val))
 
-    #             # 提取相应的数据
-    #             for key in keys[2:]:  # 从第三个键开始提取
+                # 提取相应的数据
+                for key in keys[2:]:  # 从第三个键开始提取
 
-    #                 dataset = f[key]
-    #                 if dataset.ndim == 3:  # 如果是3维数据，取第一层
-    #                     data = dataset[0, lat_idx, lon_idx]
-    #                 else:  # 2维数据，直接索引
-    #                     data = dataset[lat_idx, lon_idx]
+                    dataset = f[key]
+                    if dataset.ndim == 3:  # 如果是3维数据，取第一层
+                        data = dataset[0, lat_idx, lon_idx]
+                    else:  # 2维数据，直接索引
+                        data = dataset[lat_idx, lon_idx]
 
-    #                 temp_data.append({"lon": lon_val, "lat": lat_val, f"{file_basename}_{key}": data})
+                    temp_data.append({"lon": lon_val, "lat": lat_val, f"{file_basename}_{key}": data})
 
                                     
-    #         temp_df = pd.DataFrame(temp_data).set_index(['lat', 'lon'])
-    #         print(f"Rows: {temp_df.shape[0]}, Columns: {temp_df.shape[1]}")
-    #         print(f"Rows: {merged_df.shape[0]}, Columns: {merged_df.shape[1]}")
+            temp_df = pd.DataFrame(temp_data).set_index(['lat', 'lon'])
+            print(f"Rows: {temp_df.shape[0]}, Columns: {temp_df.shape[1]}")
+            print(f"Rows: {merged_df.shape[0]}, Columns: {merged_df.shape[1]}")
 
 
-    #         if 'Pathogen Load' in temp_df.columns:
+            if 'Pathogen Load' in temp_df.columns:
                 
-    #             temp_df = temp_df.drop(columns=['Pathogen Load'])
-    #         temp_df = temp_df.loc[~temp_df.index.duplicated()]  # 删除重复的索引
+                temp_df = temp_df.drop(columns=['Pathogen Load'])
+            temp_df = temp_df.loc[~temp_df.index.duplicated()]  # 删除重复的索引
 
-    #         merged_df = merged_df.merge(temp_df, left_index=True, right_index=True, how='left')
+            merged_df = merged_df.merge(temp_df, left_index=True, right_index=True, how='left')
 
 
-    #         print(f"Rows: {merged_df.shape[0]}, Columns: {merged_df.shape[1]}")
+            print(f"Rows: {merged_df.shape[0]}, Columns: {merged_df.shape[1]}")
 
-    #         # 打印文件处理完成的提示
-    #         print(f"\nFinished processing {filename} ({file_idx + 1}/{total_files})")
-            pass
+            # 打印文件处理完成的提示
+            print(f"\nFinished processing {filename} ({file_idx + 1}/{total_files})")
 # 将合并的数据保存为 Excel 文件
 
 output_file = 'merged_data1.xlsx'

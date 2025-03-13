@@ -4,8 +4,8 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import r2_score
 
 # 读取Excel文件
-file_path = 'output.csv'  # 替换为你文件的路径
-df = pd.read_csv(file_path)
+file_path = 'merged_data1.xlsx'  # 替换为你文件的路径
+df = pd.read_excel(file_path)
 
 # 查看数据的前几行，确保加载正确
 print(df.head())
