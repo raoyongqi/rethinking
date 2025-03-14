@@ -2,8 +2,8 @@ import os
 import h5py
 import pandas as pd
 import numpy as np
-from tqdm import tqdm  # 导入 tqdm 库
 
+import rasterio
 # 设置 NetCDF 文件所在的文件夹路径
 folder_path = 'HWSD_1247/HWSD_1247/data'  # 替换为你的文件夹路径
 
@@ -50,7 +50,6 @@ files_and_keys = [
 total_files = len(files_and_keys)
 total_coordinates = len(coordinates)
 
-# 遍历文件和相应的键
 for file_idx, file_info in enumerate(files_and_keys):
     filename = file_info["filename"]
     keys = file_info["keys"]
@@ -154,9 +153,53 @@ for file_idx, file_info in enumerate(files_and_keys):
 
             # 打印文件处理完成的提示
             print(f"\nFinished processing {filename} ({file_idx + 1}/{total_files})")
-# 将合并的数据保存为 Excel 文件
+
+
+file_path = 'data/merge.xlsx'
+
+tif_folder = 'wc2.1_5m'
+
+df = pd.read_excel(file_path )
+
+result_df = df.copy()
+
+for tiff_file in os.listdir(tif_folder):
+    if tiff_file.endswith('.tif'):
+        tiff_path = os.path.join(tif_folder, tiff_file)
+        
+        # 打开TIFF文件
+        with rasterio.open(tiff_path) as src:
+            # 获取TIFF文件的值（假设是单波段图像）
+            band = src.read(1)
+            
+            # 为每个TIFF文件创建一个新列
+            tiff_column = []
+            for index, row in df.iterrows():
+                lat = row['lat']
+                lon = row['lon']
+                
+                # 将经纬度转换为行列号
+                row_idx, col_idx = src.index(lon, lat)
+                
+                # 获取对应的栅格值
+                value = band[row_idx, col_idx]
+                
+                tiff_column.append(value)
+            
+            # 将当前 TIFF 文件的栅格值添加到 DataFrame 中，列名为 TIFF 文件名
+            result_df[tiff_file] = tiff_column
 
 output_file = 'merged_data1.xlsx'
+
+result_df = result_df.set_index(['lat', 'lon'])
+if 'Pathogen Load' in result_df.columns:
+    
+    result_df = result_df.drop(columns=['Pathogen Load'])
+
+
+result_df = result_df.loc[~result_df.index.duplicated()]  # 删除重复的索引
+
+merged_df = merged_df.merge(result_df, left_index=True, right_index=True, how='left')
 
 merged_df.to_excel(output_file, index=True)
 

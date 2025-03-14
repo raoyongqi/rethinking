@@ -4,3 +4,7 @@
 *.xlsx
 *.json
 *.csv
+
+*.tif
+/CMIP6
+/new
