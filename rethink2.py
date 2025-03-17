@@ -2,7 +2,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import r2_score
-from boruta import BorutaPy
+from sklearn.feature_selection import RFE
 
 # 读取Excel文件
 file_path = 'merged_data1.xlsx'  # 替换为你文件的路径
@@ -10,7 +10,6 @@ df = pd.read_excel(file_path)
 df['lat'].fillna(method='ffill', inplace=True)  # Forward fill for missing latitudes
 
 # 查看数据的前几行，确保加载正确
-print(df.head())
 
 # 将所有列中 'Pathogen Load' 以外的列作为特征
 X = df.drop(columns=['Pathogen Load'])  # 这里删除了 'Pathogen Load' 列
@@ -22,16 +21,17 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 # 创建随机森林回归模型
 rf = RandomForestRegressor(n_estimators=100, random_state=42)
 
-# 使用 Boruta 进行特征选择，并显示进度
-boruta = BorutaPy(rf, n_estimators='auto',max_iter=100, random_state=42, verbose=2)
-boruta.fit(X_train.values, y_train.values)
+# 使用 RFE 进行特征选择
+rfe = RFE(rf, n_features_to_select=16)  # 选择最重要的 10 个特征
+rfe.fit(X_train, y_train)
 
 # 打印被选中的重要特征
-print("Selected Features:", X.columns[boruta.support_])
+selected_features = X.columns[rfe.support_]
+print("Selected Features:", selected_features)
 
 # 仅保留被选中的特征
-X_train_selected = boruta.transform(X_train.values)
-X_test_selected = boruta.transform(X_test.values)
+X_train_selected = X_train[selected_features]
+X_test_selected = X_test[selected_features]
 
 # 创建新的随机森林回归模型并训练
 model = RandomForestRegressor(n_estimators=100, random_state=42)
@@ -45,11 +45,11 @@ r2 = r2_score(y_test, y_pred)
 
 # 打印 R² 得分
 print(f'R² Score: {r2:.4f}')
-selected_features = X.columns[boruta.ranking_][:20]
 
-# 保存到txt文件
-with open('selected_features.txt', 'w') as file:
-    for feature in selected_features:
-        file.write(f"{feature}\n")
+# 获取特征的排名
+ranking = rfe.ranking_
+print("Feature Ranking:", ranking)
 
-print("First 16 selected features saved to selected_features.txt")
+# 获取特征的系数（重要性得分）
+coef = rfe.estimator_.coef_
+print("Feature Coefficients:", coef)

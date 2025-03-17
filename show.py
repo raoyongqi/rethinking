@@ -18,7 +18,7 @@ ax.coastlines()
 ax.gridlines()
 
 # 在地图上绘制数据（例如，等值线）
-data = dataset['AWT_SOC'][0, :, :]  # 替换为实际变量名
+data = dataset['PCT_CLAY'][0, :, :]  # 替换为实际变量名
 contour = ax.contourf(lon_range, lat_range, data, transform=ccrs.PlateCarree())
 
 # 显示图例
