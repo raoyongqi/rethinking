@@ -19,9 +19,10 @@ data <- data %>%
   rename(`dom mu` = hwsd_soil_clm_res_dom_mu)
 data <- data %>%
   rename(`awt soc` = hwsd_soil_clm_res_awt_soc)
-data <- data %>%
-  rename(`pct clay` = hwsd_soil_clm_res_pct_clay)
-# 获取所有列名
+if ("hwsd_soil_clm_res_pct_clay" %in% colnames(df)) {
+  df <- df %>%
+    rename(`pct_clay` = hwsd_soil_clm_res_pct_clay)
+}
 
 other_columns <- setdiff(names(data), "Pathogen Load")
 ncol(data)

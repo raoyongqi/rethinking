@@ -189,7 +189,8 @@ result_df = result_df.loc[~result_df.index.duplicated()]
 
 merged_df = merged_df.merge(result_df, left_index=True, right_index=True, how='left')
 merged_df = merged_df.rename(columns=lambda x: x.replace('.tif', '') if '.tif' in x else x)
+merged_df = merged_df.reset_index()
+merged_df.to_excel(output_file, index=False)
 
-merged_df.to_excel(output_file, index=True)
 
 print(f"数据已成功合并并保存为 Excel 格式：{output_file}")

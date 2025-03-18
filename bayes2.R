@@ -2,7 +2,7 @@ library("bayesplot")
 library("rstanarm")
 library("ggplot2")
 library("xtable")
-
+library(dplyr)
 
 file_path <- "data/selection.csv"  # 替换为你的文件路径
 selection <- read.csv(file_path)
@@ -13,9 +13,11 @@ selection <- selection %>%
   rename(dom_mu = hwsd_soil_clm_res_dom_mu)
 selection <- selection %>%
   rename(awt_soc = hwsd_soil_clm_res_awt_soc)
-selection <- selection %>%
-  rename(pct_clay = hwsd_soil_clm_res_pct_clay)
-# 对自变量进行标准化，保持因变量不变
+if ("hwsd_soil_clm_res_pct_clay" %in% colnames(df)) {
+  df <- df %>%
+    rename(`pct_clay` = hwsd_soil_clm_res_pct_clay)
+}
+
 selection_scaled <- selection
 selection_scaled[ , -which(names(selection) == "pathogen.load")] <- scale(selection[ , -which(names(selection) == "pathogen.load")])
 

@@ -8,8 +8,10 @@ library(corrr)
 library(ggplot2)
 library(dplyr)
 library(randomForest)
+library(modelDown)
 
 
+devtools::install_github("ModelOriented/modelDown")
 # 读取数据
 file_path <- "data/selection.csv"  # 替换为你的文件路径
 df <- read.csv(file_path)
@@ -19,7 +21,6 @@ df <- df %>%
   select(pathogen.load, everything())
 # 创建一个模型
 
-df$lat <- zoo::na.locf(df$lat)  # 用前一个非缺失值填充
 df <- df %>%
   rename(`hand` = hand_500m_china_03_08)
 df <- df %>%
