@@ -21,29 +21,21 @@ if ("hwsd_soil_clm_res_pct_clay" %in% colnames(df)) {
 selection_scaled <- selection
 selection_scaled[ , -which(names(selection) == "pathogen.load")] <- scale(selection[ , -which(names(selection) == "pathogen.load")])
 
-# 使用标准化后的数据进行拟合
 fit <- stan_glm(pathogen.load ~ ., data = selection_scaled)
 posterior <- as.matrix(fit)
 params <- colnames(posterior)
 
-# 要排除的参数
 exclude_params <- c("LAT", "MAX_MAT", "MIN_MAT", "AVG_MAT", "(Intercept)", "sigma")
 
-# 过滤掉要排除的参数
 params_to_plot <- setdiff(params, exclude_params)
 
-# 绘制后验分布
 library(ggplot2)
 library(bayesplot)
 
-library(ggplot2)
-library(bayesplot)
 
-# Assuming posterior and params_to_plot are already defined
 plot_title <- ggtitle("Posterior Distributions of Regression Coefficients",
                       "with medians and 80% intervals")
 posterior
-# Create the plot
 plot <- mcmc_areas_data(posterior,
                    pars = params_to_plot,
                    prob = 0.8) 
@@ -55,16 +47,13 @@ ggplot(plot, aes(x = x, y = parameter, height = scaled_density, fill = ifelse(x 
   labs(title = "Density Distribution by Parameter", x = "Density") + # 去掉 y 轴标签
   theme(legend.position = "none", axis.title.y = element_blank()) # 去掉 y 轴标
 
-# Save the plot as a high-resolution PNG image
 ggsave("high_res_plot.png", plot = plot, dpi = 300, width = 10, height = 8)
 
 all_params <- colnames(posterior)
 params_to_keep <- setdiff(all_params, exclude_params)
 
-# 仅保留需要的参数
 posterior_filtered <- posterior[, params_to_keep]
 
-# 计算回归系数统计量
 coef_summary <- apply(posterior_filtered, 2, function(x) {
   c(
     Estimate = round(median(x), 2),

@@ -1,40 +1,52 @@
-# 加载必要的库
-rm(list = ls())
-library(vegan)
 
+rm(list = ls())
+
+library(vegan)
 library(linkET)
 library(ggplot2)
-getwd()
-# 读取数据
-file_path = "data/selection.csv"  # 替换为你的文件路径
+
+
+file_path = "data/selection.csv"
+
 data <- read.csv(file_path)
+
 library(dplyr)
-# 假设你的数据框是 data
+
 data <- data %>%
   rename(`Pathogen Load` = pathogen.load)
-# 获取所有列名
+
 data <- data %>%
   rename(`hand` = hand_500m_china_03_08)
+
 data <- data %>%
   rename(`dom mu` = hwsd_soil_clm_res_dom_mu)
+
 data <- data %>%
   rename(`awt soc` = hwsd_soil_clm_res_awt_soc)
+
 if ("hwsd_soil_clm_res_pct_clay" %in% colnames(df)) {
   df <- df %>%
     rename(`pct_clay` = hwsd_soil_clm_res_pct_clay)
 }
 
 other_columns <- setdiff(names(data), "Pathogen Load")
+
 ncol(data)
+
 colnames(data)
-# 使用其他列名从数据框中选取这些列
+
 xxxx <- data[, other_columns]
 
-# 提取因变量
 yyyy <- data$`Pathogen Load`
 
-Climate <- c("srad", "bio_15", "wind", "bio_18", "bio_11", "bio_3", "bio_8")
-Soil <- c("s_sand", "t_sand", "awt soc", "pct clay", "dom mu")
+colnames(xxxx)
+
+
+Climate <- c("srad", "bio_13", "bio_15", "bio_18", "bio_19", 
+             "bio_3", "bio_6", "bio_8", "wind")
+
+Soil <- c("awt soc", "dom mu", "s_sand", "t_sand")
+
 Geo <- c("lat", "lon", "hand")
 
 # 假设 df 是你原来的数据框
@@ -51,7 +63,7 @@ mantel <- mantel_test(yyyy, xxxx,
          pd = cut(p, breaks = c(-Inf, 0.01, 0.05, Inf),
                   labels = c("< 0.01", "0.01 - 0.05", ">= 0.05")))
 mantel_subset <- mantel[, 1:4]
-# 加载 openxlsx 包
+
 library(openxlsx)
 
 # 提取前 4 列
