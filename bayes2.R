@@ -40,7 +40,7 @@ plot <- mcmc_areas_data(posterior,
                    pars = params_to_plot,
                    prob = 0.8) 
 library(ggridges)
-ggplot(plot, aes(x = x, y = parameter, height = scaled_density, fill = ifelse(x >= 0, "Positive", "Negative"))) +
+p <- ggplot(plot, aes(x = x, y = parameter, height = scaled_density, fill = ifelse(x >= 0, "Positive", "Negative"))) +
   geom_density_ridges(stat = "identity") +
   theme_ridges() + # 设置主题
   scale_fill_manual(values = c("Positive" = "darkred", "Negative" = "coral")) + # 设置颜色
@@ -48,11 +48,11 @@ ggplot(plot, aes(x = x, y = parameter, height = scaled_density, fill = ifelse(x 
   theme_publication()+
   theme(legend.position = "none",axis.title.x = element_blank(), axis.title.y = element_blank(),
     
-    axis.text.x = element_text(size = 16),  # 增大字体
-    axis.text.y = element_text(size = 16),  # 增大字体
+    axis.text.x = element_text(size = 25),  # 增大字体
+    axis.text.y = element_text(size = 25),  # 增大字体
   )
 
-ggsave("bayes_plot.png", p, width = 12, height = 6, dpi = 600)
+ggsave("bayes_plot.png", p, width = 12, height = 8, dpi = 600)
 
 
 

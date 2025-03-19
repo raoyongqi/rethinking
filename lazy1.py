@@ -43,48 +43,33 @@ X_train,X_valid, y_train, y_valid= train_test_split(X, y, test_size=0.2, random_
 models,predictions = reg.fit(X_train, X_valid, y_train, y_valid)
 print(models)
 
+
 import scienceplots
+
 idx = [i for i in range(41)]
+
 with plt.style.context('science'):
-    plt.figure(facecolor='white')
+    fig, ax = plt.subplots(figsize=(12, 6))  # 设置宽高比 2:1
+    ax.set_facecolor('white')
 
-    plt.plot(idx, models["RMSE"][:41]  , label = "RMSE" , marker = 'o' )
+    ax.plot(idx, models["RMSE"][:41], label="RMSE", marker='o')
 
+    ax.annotate(models.index[0], 
+                (1, models["RMSE"][0]), 
+                xytext=(3, 3),                fontsize=22,  # 设置字体大小
+                arrowprops=dict(arrowstyle="simple", color="red"))
 
-    plt.annotate(models.index[0] , 
-                (1,models["RMSE"][0]) , 
-                xytext  =(3,3),
-                arrowprops = dict(
-                                arrowstyle = "simple",
-                    color = "red"
-                                ))
-    print(models.index[40] )
-    plt.annotate(models.index[40] , 
-                (40 , models["RMSE"][40]) ,
-                xytext  =(35,5),
-                arrowprops = dict(
-                                arrowstyle = "simple",
-                                    color = "red"
+    print(models.index[40])
+    ax.annotate(models.index[40], 
+                (40, models["RMSE"][40]), 
+                xytext=(35, 5),                fontsize=22,  # 设置字体大小
+                arrowprops=dict(arrowstyle="simple", color="red"))
 
-                                ))
+    ax.set_xlabel("Model Index", fontsize=22)  # 增大 X 轴字体
+    ax.set_ylabel("Metrics", fontsize=22)  # 增大 Y 轴字体
+    ax.tick_params(axis='both', labelsize=20)  # 增大坐标轴刻度字体
 
-    plt.gca().set_facecolor('white')
+    ax.legend()
     plt.tight_layout()
-
-    plt.xlabel("Model Index")
-    plt.ylabel("Metrics")
-    plt.legend()
-    plt.savefig("data/lazy1.png", dpi=300)  # 保存为 PNG 格式，设置较高的 DPI
-    plt.show()  # 显示图表
-
-
-idx = [i for i in range(41)]
-with plt.style.context('science'):
-    idx = [i for i in range(42)]
-    plt.plot(idx, models["Time Taken"] , label = "RMSE" ,marker = "o" )
-    plt.xlabel("Model Index")
-    plt.ylabel("Time Taken")
-    plt.title("Comparison of 42 Different Regressors")
-    plt.legend()
-    plt.savefig("data/lazy2.png", dpi=300)  # 保存为 PNG 格式，设置较高的 DPI
-    plt.show()  # 显示图表
+    plt.savefig("data/lazy1.png", dpi=300)  # 保存高分辨率 PNG 图片
+    plt.show()

@@ -103,21 +103,17 @@ qcorrplot(cor_matrix, type = "lower", diag = FALSE)+
       title = "Mantel's r",
       override.aes = list(colour = "grey35", size = 5), 
       order = 2,
-      size = NULL,
       title.theme = element_text(size = 14),  # 增加标题字体大小
       label.theme = element_text(size = 12)   # 增加标签字体大小
     ),
     colour = guide_legend(
       title = "Mantel's p", 
-      override.aes = list(shape = 21), 
+      override.aes = list(size = 5), 
       order = 1,
       title.theme = element_text(size = 14),  # 增加标题字体大小
       label.theme = element_text(size = 12),
-      theme = theme(
-        keyheight = 10,
-        keywidth = 10,
-        default.unit = "inch"
-      )           # 设置颜色图例的高度
+      keywidth = 1.5,            # 设置颜色图例的宽度
+      keyheight = 1.5            # 设置颜色图例的高度
       ),
     fill = guide_colorbar(
       title = "Pearson's r", 
