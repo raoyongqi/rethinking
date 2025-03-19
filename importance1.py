@@ -15,10 +15,11 @@ if 'hwsd_soil_clm_res_pct_clay' in train_df.columns:
     train_df = train_df.rename(columns={'hwsd_soil_clm_res_pct_clay': 'pct_clay'})
 # extract a sample of the data
 sample_df = train_df.sample(frac=0.2, random_state=42)
-print(sample_df.columns)
-# 
+
+print(sample_df.index)
+
 # # define the validation scheme
-cv = KFold(n_splits=4, shuffle=False, random_state=None) # Don't shuffle to keep the time split split validation
+cv = KFold(n_splits=4, shuffle=False) # Don't shuffle to keep the time split split validation
 
 # define the binary target and the features
 dataset = Dataset(df=sample_df, target="pathogen load", features=[col for col in train_df.columns if col != "pathogen load"])
@@ -41,10 +42,6 @@ importance_keep  = importance_keep[['feature','importance_mean', 'importance_std
 importance_keep.to_excel("data/importance_result.xlsx", index=False)
 
 
-import matplotlib.pyplot as plt
-import warnings
-import matplotlib.pyplot as plt
-import warnings
 import matplotlib.pyplot as plt
 import pandas as pd
 import warnings
@@ -71,7 +68,7 @@ def plot_importance(importance_df, figsize=(8, 8), kind="default", save_path=Non
         warnings.warn(f"{kind} not in {available_kinds}. Setting to default")
 
     # Increase font size
-    font_size = 16
+    font_size = 30
     plt.rcParams.update({'font.size': font_size})  # Set default font size for the plot
 
     # Default bar plot
@@ -80,23 +77,27 @@ def plot_importance(importance_df, figsize=(8, 8), kind="default", save_path=Non
                                 kind='barh', color=importance_df["color"], figsize=figsize)
         ax.set_xlabel('Importance', fontsize=font_size)
         ax.set_ylabel('Feature', fontsize=font_size)
-        ax.set_title('Feature Importance', fontsize=font_size)
+        ax.set_title('')  # Remove the title
+
+        # Increase the font size for ticks and labels
+        ax.tick_params(axis='both', which='major', labelsize=font_size)
+        ax.tick_params(axis='x', which='both', labelsize=font_size)  # Make sure x-axis ticks are also large
+        ax.tick_params(axis='y', which='both', labelsize=font_size)  # Make sure y-axis ticks are also large
 
     # Box plot for "box" kind
     elif kind == "box":
         lofo_score_cols = [col for col in importance_df.columns if col.startswith("val_imp")]
         features = importance_df["feature"].values.tolist()
         importance_df.set_index("feature")[lofo_score_cols].T.boxplot(column=features, vert=False, figsize=figsize)
-        plt.title('Boxplot of Feature Importance', fontsize=font_size)
+        plt.title('')  # Remove the title
 
-    # Show the plot explicitly
-    plt.tight_layout()  # Adjust layout to prevent clipping
+        # Increase the font size for ticks and labels
+        plt.tick_params(axis='both', which='major', labelsize=font_size)
 
-    # Save the plot as a high-quality vector file if a save path is provided
+    # Save the plot if save_path is provided
     if save_path:
-        plt.savefig(save_path, format='png', dpi=300)  # Save as PNG or other formats with 300 dpi resolution
-    
-    plt.show()  # Show the plot in non-Jupyter environment
+        plt.savefig(save_path)
+    plt.show()
 
 # plot the means and standard deviations of the importances
 plot_importance(importance_df, figsize=(20, 12),save_path='data/importance.png')

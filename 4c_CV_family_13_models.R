@@ -133,14 +133,14 @@ ggplot(summ_stats, aes(x = model, y = Mean)) +
   
   coord_flip() +
   facet_wrap(~ metric, scales = "free_x") +
-  labs(x = "", y = "Predictive Accuracy") +
+  labs(x = "", y = "") +
   theme_publication() +
   theme(
-    axis.title.x = element_text(size = 14, margin = margin(t = 5, r = 0, b = 0, l = 0)),  # 增大字体
-    axis.title.y = element_text(size = 14, margin = margin(t = 0, r = -3, b = 0, l = 0)), # 增大字体
-    axis.text.x = element_text(size = 12),  # 增大字体
-    axis.text.y = element_text(size = 12),  # 增大字体
-    strip.text = element_text(size = 12),  # 增大字体
+    axis.title.x = element_text(size = 18, margin = margin(t = 5, r = 0, b = 0, l = 0)),  # 增大字体
+    axis.title.y = element_text(size = 18, margin = margin(t = 0, r = -3, b = 0, l = 0)), # 增大字体
+    axis.text.x = element_text(size = 16),  # 增大字体
+    axis.text.y = element_text(size = 16),  # 增大字体
+    strip.text = element_text(size = 16),  # 增大字体
     panel.border = element_rect(size = 0.5),
     panel.grid.major.y = element_blank(),
     panel.grid.major.x = element_line(size = .5, color = "#f0f0f0"),

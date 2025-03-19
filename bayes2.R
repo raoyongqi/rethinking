@@ -25,7 +25,7 @@ fit <- stan_glm(pathogen.load ~ ., data = selection_scaled)
 posterior <- as.matrix(fit)
 params <- colnames(posterior)
 
-exclude_params <- c("LAT", "MAX_MAT", "MIN_MAT", "AVG_MAT", "(Intercept)", "sigma")
+exclude_params <- c("(Intercept)", "sigma")
 
 params_to_plot <- setdiff(params, exclude_params)
 
@@ -44,8 +44,53 @@ ggplot(plot, aes(x = x, y = parameter, height = scaled_density, fill = ifelse(x 
   geom_density_ridges(stat = "identity") +
   theme_ridges() + # 设置主题
   scale_fill_manual(values = c("Positive" = "darkred", "Negative" = "coral")) + # 设置颜色
-  labs(title = "Density Distribution by Parameter", x = "Density") + # 去掉 y 轴标签
-  theme(legend.position = "none", axis.title.y = element_blank()) # 去掉 y 轴标
+  
+  theme_publication()+
+  theme(legend.position = "none",axis.title.x = element_blank(), axis.title.y = element_blank(),
+    
+    axis.text.x = element_text(size = 16),  # 增大字体
+    axis.text.y = element_text(size = 16),  # 增大字体
+  )
+
+ggsave("bayes_plot.png", p, width = 12, height = 6, dpi = 600)
+
+
+
+theme_publication <- function(base_size = 12, base_family = "Helvetica", ...) {
+  require(grid)
+  require(ggthemes)
+  (theme_foundation(base_size = base_size, base_family = base_family)
+    + theme(plot.title = element_text(face = "bold", size = rel(1.2), hjust = 0.5),
+            text = element_text(),
+            panel.background = element_rect(color = NA),
+            plot.background = element_rect(color = NA),
+            panel.border = element_rect(color = "black", size = 1),
+            axis.title = element_blank(),  # 隐藏 x 和 y 轴标题
+            
+            axis.text = element_text(size = rel(0.9)), 
+            #axis.line.y = element_line(color="black"),
+            #axis.line.x = element_line(color="black"),
+            axis.ticks = element_line(),
+            legend.position = "none",
+            
+            panel.grid.minor = element_blank(),
+            panel.grid.major.y = element_line(size=.5, color="#f0f0f0"),
+            # explicitly set the horizontal lines (or they will disappear too)
+            panel.grid.major.x = element_blank(),
+            panel.spacing = unit(0.1, "lines"),
+            #legend.key = element_rect(color = NA),
+            #legend.direction = "horizontal",
+            legend.key.size = unit(0.5, "cm"),
+            legend.spacing = unit(0, "cm"),
+            #legend.title = element_text(face="italic"),
+            legend.text = element_text(size = 8),
+            plot.margin = unit(c(10,5,5,5),"mm"),
+            # strip.text = element_blank(),
+            strip.background = element_blank()
+    ))
+}
+
+
 
 ggsave("high_res_plot.png", plot = plot, dpi = 300, width = 10, height = 8)
 
