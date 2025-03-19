@@ -17,7 +17,6 @@ def read_tif(tif_file):
         transform = src.transform  # 获取坐标转换
         return tif_data, transform
 
-# 读取多个 TIF 文件
 def read_multiple_tifs(tif_files):
     tif_data_list = []
     transform = None
@@ -26,17 +25,34 @@ def read_multiple_tifs(tif_files):
         tif_data_list.append(tif_data)
     return tif_data_list, transform
 
+def get_coordinates(rows, cols, transform):
+    lon, lat = np.meshgrid(
+        np.arange(0, cols) * transform[0] + transform[2],
+        np.arange(0, rows) * transform[4] + transform[5]
+    )
+    return lon.flatten(), lat.flatten()
+
 # 读取多个 TIF 文件
-tif_files = ['new/bio_13.tif', 'new/dom_mu.tif']  # 你可以添加多个 TIF 文件
+tif_files = ['new/bio_13.tif', 'new/dom_mu.tif', 'new/awt_soc.tif','new/s_sand.tif', 'new/t_sand.tif', 'new/hand.tif', 
+             'new/srad.tif', 'new/bio_15.tif', 'new/bio_18.tif', 'new/bio_19.tif', 'new/bio_3.tif', 
+             'new/bio_6.tif', 'new/bio_8.tif', 'new/wind.tif']
 tif_data_list, transform = read_multiple_tifs(tif_files)
 
-# 检查每个 TIF 数据中的无穷大和 NaN
+
+# 获取经纬度
+rows, cols = tif_data_list[0].shape
+lon, lat = get_coordinates(rows, cols, transform)
+
+print(tif_data_list)
+
 for i, tif_data in enumerate(tif_data_list):
     print(f"TIF {i+1}:")
     print(f"Contains Inf: {np.any(np.isinf(tif_data))}")
     print(f"Contains NaN: {np.any(np.isnan(tif_data))}")
 
-# 读取训练数据 CSV
+for i, tif_data in enumerate(tif_data_list):
+    print(f"TIF {i+1} shape: {tif_data.shape}")
+
 train_df = pd.read_csv("data/selection.csv")
 train_df = train_df.rename(columns={
     'hand_500m_china_03_08': 'hand',
@@ -47,18 +63,22 @@ train_df = train_df.rename(columns={
 # 如果某个列存在，则重命名
 if 'hwsd_soil_clm_res_pct_clay' in train_df.columns:
     train_df = train_df.rename(columns={'hwsd_soil_clm_res_pct_clay': 'pct_clay'})
-
+print(train_df.columns)
 # 3. 分离特征变量和目标变量
-train_X = train_df[['dom_mu', 'bio_13']]
+train_X = train_df[['lon','lat','awt_soc','dom_mu', 'bio_13', 's_sand', 't_sand', 'hand', 'srad', 'bio_15', 'bio_18', 'bio_19', 'bio_3', 'bio_6', 'bio_8', 'wind']]
 train_y = train_df['pathogen load']  # 目标变量
 
 # 训练随机森林模型
 rf = RandomForestRegressor(n_estimators=100, random_state=42)
 rf.fit(train_X, train_y)
 
-# 将多个 TIF 数据合并为一个特征矩阵
-rows, cols = tif_data_list[0].shape
-X = np.stack([tif_data.flatten() for tif_data in tif_data_list], axis=1)  # 使用多个 TIF 文件作为输入特征
+# 将多个 TIF 数据合并为一个特征矩阵，并添加经纬度信息
+X = np.stack([tif_data.flatten() for tif_data in tif_data_list], axis=1) 
+
+
+
+coordinates = np.stack([lon, lat], axis=1)  # 经度和纬度
+X = np.concatenate([X, coordinates], axis=1)  # 将经纬度添加到特征矩阵中
 
 # 检查 X 中是否存在无穷大或 NaN
 print(X.shape)

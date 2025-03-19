@@ -25,7 +25,6 @@ def read_nc(nc_file):
 
 
 
-# 2. 读取目标 TIFF 文件
 def read_tif(tif_file):
     with rasterio.open(tif_file) as src:
         # 获取目标栅格的空间参考信息和形状
@@ -44,14 +43,12 @@ def read_tif(tif_file):
         dy = -transform[4]  # Y方向分辨率（负数表示方向向下）        
     return lon_tif, lat_tif, transform, width, height, crs, dx, dy
 
-# 3. 将数据保存为 TIFF 文件
 def save_to_tif(data, transform, crs, width, height, output_file):
     # 确保 dtype 为 float32
     data = data.astype(np.float32)
     with rasterio.open(output_file, 'w', driver='GTiff', height=height, width=width, count=1, dtype='float32', crs=crs, transform=transform) as dst:
         dst.write(data, 1)
 
-# 4. 绘制保存的 TIFF 文件
 def plot_tif(tif_file):
     with rasterio.open(tif_file) as src:
         data = src.read(1)
@@ -67,7 +64,6 @@ def resample_nc_to_tif(nc_file, tif_file):
     # 读取 NetCDF 数据
     awt_soc_data, dom_mu_data, lat_nc, lon_nc = read_nc(nc_file)
 
-    # 读取 TIFF 文件，获取其空间信息
     lon_tif, lat_tif, transform, width, height, crs, dx, dy = read_tif(tif_file)
     print(dx, dy)
     print(awt_soc_data)
