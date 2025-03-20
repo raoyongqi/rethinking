@@ -10,35 +10,30 @@ train_df = train_df.rename(columns={
     'hwsd_soil_clm_res_awt_soc': 'awt_soc'
 })
 
-# 如果某个列存在，则重命名
 if 'hwsd_soil_clm_res_pct_clay' in train_df.columns:
     train_df = train_df.rename(columns={'hwsd_soil_clm_res_pct_clay': 'pct_clay'})
-# extract a sample of the data
+
 sample_df = train_df.sample(frac=0.2, random_state=42)
 
 print(sample_df.index)
 
-# # define the validation scheme
+
 cv = KFold(n_splits=4, shuffle=False) # Don't shuffle to keep the time split split validation
 
-# define the binary target and the features
 dataset = Dataset(df=sample_df, target="pathogen load", features=[col for col in train_df.columns if col != "pathogen load"])
 from sklearn.ensemble import RandomForestRegressor
 
 model = RandomForestRegressor(n_estimators=100, random_state=42)
-# define the validation scheme and scorer. The default model is LightGBM
+
 lofo_imp = LOFOImportance(dataset,model=model, cv=cv, scoring="neg_mean_squared_error")
 
-# get the mean and standard deviation of the importances in pandas format
 importance_df = lofo_imp.get_importance()
 
 importance_keep = importance_df.round(2)
 importance_keep['range'] = importance_keep[['val_imp_0', 'val_imp_1', 'val_imp_2', 'val_imp_3']].apply(lambda x: f"（{x.min()}, {x.max()}）", axis=1)
-#'val_imp_0', 'val_imp_1', 'val_imp_2', 'val_imp_3'
 
 importance_keep  = importance_keep[['feature','importance_mean', 'importance_std', 'range']]
 
-# 保存为 Excel 文件
 importance_keep.to_excel("data/importance_result.xlsx", index=False)
 
 

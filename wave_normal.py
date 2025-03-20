@@ -6,8 +6,8 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 
 # 加载数据
-file_path = 'data/merged_all.xlsx'  # 替换为你的文件路径
-data = pd.read_excel(file_path)
+file_path = 'data/selection.csv'  # 替换为你的文件路径
+data = pd.read_csv(file_path)
 
 # 处理列名
 # 检查每一列的NaN值
@@ -20,9 +20,10 @@ nan_columns = nan_counts[nan_counts > 0]
 print("\n包含NaN值的列：")
 print(nan_columns)
 
-feature_columns = [col for col in data.columns if col != 'Pathogen Load']
+feature_columns = [col for col in data.columns if col != 'pathogen load']
+
 X = data[feature_columns]
-y = data['Pathogen Load']
+y = data['pathogen load']
 
 # 对数据进行划分
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=42)
@@ -46,16 +47,16 @@ X_valid_scaled = scaler.transform(X_valid)
 X_test_scaled = scaler.transform(X_test)
 
 # 构建模型
-input_x = tf.keras.layers.Input(shape=(144,))
-x = tf.keras.layers.Reshape(target_shape=[144, 1])(input_x)
+input_x = tf.keras.layers.Input(shape=(16,))
+x = tf.keras.layers.Reshape(target_shape=[16, 1])(input_x)
 
 num_blocks = 2
-dilation_rates = (1, 2, 4, 8, 16, 32)
+dilation_rates = (1, 2, 4)
 
 # 添加卷积层
 for _ in range(num_blocks):
     for rate in dilation_rates:
-        x = tf.keras.layers.Conv1D(filters=32, kernel_size=2, activation="elu", dilation_rate=rate, padding='valid')(x)
+        x = tf.keras.layers.Conv1D(filters=8, kernel_size=2, activation="elu", dilation_rate=rate, padding='valid')(x)
 
 # 添加Dropout层
 x = tf.keras.layers.Dropout(0.2)(x)

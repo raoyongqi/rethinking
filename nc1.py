@@ -7,6 +7,10 @@ import rasterio
 
 folder_path = 'HWSD_1247/HWSD_1247/data'  
 
+import numpy as np
+import rasterio
+from geopy.distance import geodesic
+from scipy.spatial import KDTree
 
 excel_file = 'data/merge.xlsx'  # 替换为你的文件路径
 coordinates = pd.read_excel(excel_file)
@@ -147,38 +151,98 @@ for file_idx, file_info in enumerate(files_and_keys):
             print(f"\nFinished processing {filename} ({file_idx + 1}/{total_files})")
 
 
-file_path = 'data/merge.xlsx'
 
+file_path = 'data/merge.xlsx'
 tif_folder = 'new'
 
 df = pd.read_excel(file_path )
 
 result_df = df.copy()
 
-for tiff_file in os.listdir(tif_folder):
-    if tiff_file.endswith('.tif'):
-        tiff_path = os.path.join(tif_folder, tiff_file)
-        
-        with rasterio.open(tiff_path) as src:
 
-            band = src.read(1)
+
+import rasterio
+import numpy as np
+from geopy.distance import geodesic
+from tqdm import tqdm  # 引入 tqdm
+
+
+
+def extract_tiff_data(tiff_file, df, lat_range=5.0, lon_range=5.0):
+    tiff_column = []
+    
+    with rasterio.open(tiff_file) as src:
+        band = src.read(1)  # Read the first band
+        transform = src.transform  # Get the affine transform parameters
+
+        # Loop through each row in the DataFrame
+        for index, row in df.iterrows():
+            lat = row['lat']
+            lon = row['lon']
             
-            tiff_column = []
-            for index, row in df.iterrows():
-                lat = row['lat']
-                lon = row['lon']
-                
+            try:
+                # Get the row and column indices corresponding to the latitude and longitude
                 row_idx, col_idx = src.index(lon, lat)
-                
                 value = band[row_idx, col_idx]
                 
-                tiff_column.append(value)
+                # If the value is not NaN, use it directly and append to tiff_column
+                if not np.isnan(value):
+                    tiff_column.append(value)
+                else:
+                    raise ValueError(f"{tiff_file} location ({lat}, {lon}) has NaN value, searching for the nearest valid data.")
+            except Exception as e:
+                print(f"Cannot get the row/column index for coordinates ({lat}, {lon}), error: {e}")
+                
+                # Only create KDTree and valid_pixels when we need to find the nearest valid pixel
+                valid_pixels = []
+                for i in range(band.shape[0]):
+                    for j in range(band.shape[1]):
+                        value = band[i, j]
+                        if not np.isnan(value):  # Check if it's valid data
+                            lon_pixel, lat_pixel = transform * (j, i)  # Get the longitude and latitude of the pixel
+                            valid_pixels.append((lat_pixel, lon_pixel, value))
+                
+                # Only create KDTree if there are valid pixels to query
+                valid_coords = [(valid_lat, valid_lon) for valid_lat, valid_lon, valid_value in valid_pixels]
+                valid_values = [valid_value for valid_lat, valid_lon, valid_value in valid_pixels]
+                kdtree = KDTree(valid_coords)
 
-            result_df[tiff_file] = tiff_column
+                # Look for the nearest valid pixel within the given lat/lon range
+                closest_value = None
+                closest_distance = float('inf')
+
+                # Only search valid pixels within the given lat/lon range
+                nearby_coords = [(valid_lat, valid_lon) for valid_lat, valid_lon, valid_value in valid_pixels
+                                 if abs(valid_lat - lat) <= lat_range and abs(valid_lon - lon) <= lon_range]
+
+                # If we have valid nearby pixels, query the KDTree for the closest one
+                if nearby_coords:
+                    _, idx = kdtree.query((lat, lon))
+                    closest_value = valid_values[idx]
+                    closest_distance = geodesic((lat, lon), (valid_coords[idx][0], valid_coords[idx][1])).meters
+                    print(f"Using the closest valid data value: {closest_value} (distance: {closest_distance:.2f} meters)")
+                    tiff_column.append(closest_value)
+                else:
+                    raise ValueError(f"No valid data found within range for location ({lat}, {lon}).")
+    
+    return tiff_column
+excluded_files = ['pct_clay.tif', 'dom_mu.tif', 'awt_soc.tif', 's_sand.tif', 't_sand.tif']
+tiff_files = ['new/hand.tif'] + [os.path.join(tif_folder, f) for f in os.listdir(tif_folder) 
+             if f.endswith('.tif') and f not in excluded_files]
+
+# 遍历所有的.tif文件并提取数据
+for tiff_file in tiff_files:
+    # 提取tiff文件对应的数据
+    tiff_column = extract_tiff_data(tiff_file, df)
+    
+    # 将数据添加到结果DataFrame中
+    result_df[tiff_file] = tiff_column
+
 
 output_file = 'merged_data1.xlsx'
 
 result_df = result_df.set_index(['lat', 'lon'])
+
 
 if 'Pathogen Load' in result_df.columns:
     
@@ -186,7 +250,8 @@ if 'Pathogen Load' in result_df.columns:
 
 
 result_df = result_df.loc[~result_df.index.duplicated()]
-
+# merged_df = pd.read_excel(file_path)
+# merged_df = merged_df.set_index(['lat', 'lon'])
 merged_df = merged_df.merge(result_df, left_index=True, right_index=True, how='left')
 merged_df = merged_df.rename(columns=lambda x: x.replace('.tif', '') if '.tif' in x else x)
 merged_df = merged_df.reset_index()

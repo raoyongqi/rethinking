@@ -6,11 +6,11 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score
 from tensorflow.keras.layers import BatchNormalization, concatenate
 
-data = pd.read_excel('data/merged_all.xlsx')  # 替换为你的CSV文件路径
+data = pd.read_excel('data/climate_soil_tif.xlsx')  # 替换为你的CSV文件路径
 
-X = data.drop(columns=['Pathogen Load'])  # 输入特征
+X = data.drop(columns=['RATIO'])  # 输入特征
 
-y = data['Pathogen Load']  # 输出目标
+y = data['RATIO']  # 输出目标
 
 
 X = X.fillna(X.mean())
