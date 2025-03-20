@@ -1,47 +1,27 @@
-import os
-import pandas as pd
+import numpy as np
 import rasterio
+import pandas as pd
 
-# CSV 文件路径
-file_path = 'data/merge.xlsx'  # 替换为你的Excel文件路径
 
-# TIFF 文件夹路径
-tif_folder = 'wc2.1_5m'  # 替换为包含TIFF文件的文件夹路径
+from sklearn.ensemble import RandomForestRegressor
+import rasterio
+import os
+import matplotlib.pyplot as plt
 
-# 读取CSV文件
-df = pd.read_excel(file_path )
+# 读取 CSV 文件并进行列名重命名
+train_df = pd.read_csv("data/selection.csv")
+train_df = train_df.rename(columns={
+    'hand_500m_china_03_08': 'hand',
+    'hwsd_soil_clm_res_dom_mu': 'dom_mu',
+    'hwsd_soil_clm_res_awt_soc': 'awt_soc'
+})
 
-# 创建一个空的 DataFrame 来存储结果
-result_df = df.copy()
+# 处理 bio 列
+if 'hwsd_soil_clm_res_pct_clay' in train_df.columns:
+    train_df = train_df.rename(columns={'hwsd_soil_clm_res_pct_clay': 'pct_clay'})
 
-# 遍历TIFF文件夹中的所有.tif文件
-for tiff_file in os.listdir(tif_folder):
-    if tiff_file.endswith('.tif'):
-        tiff_path = os.path.join(tif_folder, tiff_file)
-        
-        # 打开TIFF文件
-        with rasterio.open(tiff_path) as src:
-            # 获取TIFF文件的值（假设是单波段图像）
-            band = src.read(1)
-            
-            # 为每个TIFF文件创建一个新列
-            tiff_column = []
-            for index, row in df.iterrows():
-                lat = row['lat']
-                lon = row['lon']
-                
-                # 将经纬度转换为行列号
-                row_idx, col_idx = src.index(lon, lat)
-                
-                # 获取对应的栅格值
-                value = band[row_idx, col_idx]
-                
-                tiff_column.append(value)
-            
-            # 将当前 TIFF 文件的栅格值添加到 DataFrame 中，列名为 TIFF 文件名
-            result_df[tiff_file] = tiff_column
+cols = train_df.columns
 
-# 输出整理后的 DataFrame
-
-# 如果需要保存到CSV文件
-result_df.to_csv('output.csv', index=False)
+new_order = [col for col in cols if 'bio' not in col and col != 'tmax'] + \
+            [col for col in cols if 'bio' in col or col == 'tmax']
+print(new_order)

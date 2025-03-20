@@ -156,7 +156,9 @@ tif_file = 'CMIP6/ACCESS-CM2/ssp370/2021-2040/wc2.1_5m_tmax_ACCESS-CM2_ssp370_20
 tmax = flatten_and_stack_bands(tif_file)
 
 X = np.concatenate([coordinates,X,stacked_bands,tmax], axis=1)
+
 X_df = pd.DataFrame(X, columns=[col for col in train_df.columns if 'pathogen load' not in col])
+
 
 train_X =  train_df.drop(columns=['pathogen load'])
 train_y = train_df['pathogen load']
@@ -341,6 +343,46 @@ with rasterio.open(tiff_output_path) as cropped_src:
             merged_gdf.at[idx, 'value'] = avg_value
         else:
             merged_gdf.at[idx, 'value'] = np.nan  
+
+
+import rasterio
+import numpy as np
+
+ssp_scenario = '370'
+tiff_file1 = f'data/cropped_predicted_rf_{ssp_scenario}.tif'
+tiff_file2 = 'data/cropped_predicted_rf.tif'
+output_file = f'data/sub_{ssp_scenario}_rf.tif'
+
+# 读取文件
+with rasterio.open(tiff_file1) as src1, rasterio.open(tiff_file2) as src2:
+    data1 = src1.read(1).astype(np.float64)
+    data2 = src2.read(1).astype(np.float64)
+    profile = src1.profile
+
+    # 处理 nodata 值
+    if src1.nodata is not None:
+        data1[data1 == src1.nodata] = np.nan
+    if src2.nodata is not None:
+        data2[data2 == src2.nodata] = np.nan
+
+    # 确保形状一致
+    if data1.shape != data2.shape:
+        raise ValueError("The shapes of the two TIFF files do not match.")
+
+    # 相减运算，忽略 nodata
+    result_data = np.where(~np.isnan(data1) & ~np.isnan(data2), data1 - data2, np.nan)
+
+# 更新 profile 并保存
+profile.update({
+    'dtype': 'float64',
+    'count': 1,
+    'nodata': np.nan
+})
+
+with rasterio.open(output_file, 'w', **profile) as dst:
+    dst.write(result_data, 1)
+
+print(f"Output TIFF file has been created at: {output_file}")
 
 # target_lon, target_lat = 104.873239, 31.789814
 

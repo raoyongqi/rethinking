@@ -96,7 +96,7 @@ y_pred = rf.predict(X_df)
 
 y_pred_2d = y_pred.reshape((rows, cols))
 
-output_tif = 'data/predicted_output.tif'
+output_tif = 'data/predicted_rf.tif'
 
 with rasterio.open(output_tif, 'w', driver='GTiff', count=1, dtype='float32', 
                    width=cols, height=rows, crs='+proj=latlong', transform=transform) as dst:

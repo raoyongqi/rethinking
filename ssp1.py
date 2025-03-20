@@ -349,9 +349,9 @@ import rasterio
 import numpy as np
 
 ssp_scenario = '126'
-tiff_file1 = f'result/predicted_{ssp_scenario}_rf.tif'
-tiff_file2 = 'pl/predicted_rf.tif'
-output_file = f'result/sub_{ssp_scenario}_rf.tif'
+tiff_file1 = f'data/cropped_predicted_rf_{ssp_scenario}.tif'
+tiff_file2 = 'data/cropped_predicted_rf.tif'
+output_file = f'data/sub_{ssp_scenario}_rf.tif'
 
 # 读取文件
 with rasterio.open(tiff_file1) as src1, rasterio.open(tiff_file2) as src2:

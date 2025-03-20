@@ -73,7 +73,7 @@ if not os.path.isdir(tiff_folder):
 
 
 
-tiff_file ='predicted_output.tif'
+tiff_file ='predicted_rf.tif'
 
 
 tiff_path = os.path.join(tiff_folder, tiff_file)
