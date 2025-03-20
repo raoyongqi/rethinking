@@ -12,7 +12,7 @@ def read_nc(nc_file):
     # 读取特定的变量 "AWT_SOC" 和 "DOM_MU"
     awt_soc_data = nc_data.variables['AWT_SOC'][:]
     dom_mu_data = nc_data.variables['DOM_MU'][:]
-    
+    pct_clay_data =  nc_data.variables['PCT_CLAY'][:]
     # 获取纬度和经度数据
     lat_nc = nc_data.variables['lat'][:]  # 假设存在 lat 和 lon 变量
     lon_nc = nc_data.variables['lon'][:]
@@ -20,7 +20,7 @@ def read_nc(nc_file):
     # 关闭文件
     nc_data.close()
     
-    return awt_soc_data[0], dom_mu_data[0], lat_nc, lon_nc
+    return awt_soc_data[0], dom_mu_data[0],pct_clay_data[0], lat_nc, lon_nc
 
 
 
@@ -62,7 +62,7 @@ def plot_tif(tif_file):
 # 5. 执行重采样过程
 def resample_nc_to_tif(nc_file, tif_file):
     # 读取 NetCDF 数据
-    awt_soc_data, dom_mu_data, lat_nc, lon_nc = read_nc(nc_file)
+    awt_soc_data, dom_mu_data,pct_clay_data, lat_nc, lon_nc = read_nc(nc_file)
 
     lon_tif, lat_tif, transform, width, height, crs, dx, dy = read_tif(tif_file)
     print(dx, dy)
@@ -70,23 +70,18 @@ def resample_nc_to_tif(nc_file, tif_file):
 
     awt_soc_tif = 'data/AWT_SOC.tif'
     dom_mu_tif = 'data/DOM_MU.tif'
-
+    pct_clay_tif = 'data/PCT_CLAY.tif'
     # 使用 rasterio 将 NetCDF 数据保存为 TIFF
     save_to_tif(awt_soc_data, transform, crs, width, height, awt_soc_tif)
     save_to_tif(dom_mu_data, transform, crs, width, height, dom_mu_tif)
-    with rasterio.open('data/DOM_MU.tif') as src:
-    # 读取数据
-        data = src.read(1)  # 读取第一个波段的数据
-        
-        # 获取最大值
-        max_value = np.nanmax(data)  # 使用 nanmax 忽略 NaN 值
-    
-    # 打印最大值
-    print(f"DOM_MU.tif 的最大值是: {max_value}")
+    save_to_tif(pct_clay_data, transform, crs, width, height, pct_clay_tif)
+
+
     # 使用 gdalwarp 执行重采样
     awt_soc_resampled_file = 'new/awt_soc.tif'
     dom_mu_resampled_file = 'new/dom_mu.tif'
-    
+    pct_clay_resampled_file = 'new/pct_clay.tif'
+
     subprocess.run([  # 对 AWT_SOC 进行重采样
         'gdalwarp', 
         '-s_srs', 'EPSG:4326', 
@@ -107,6 +102,17 @@ def resample_nc_to_tif(nc_file, tif_file):
         dom_mu_resampled_file
     ])
 
+    subprocess.run([  # 对 AWT_SOC 进行重采样
+        'gdalwarp', 
+        '-s_srs', 'EPSG:4326', 
+        '-t_srs', 'EPSG:4326',  
+        '-r', 'bilinear',  
+        '-ot', 'Float32',  # 指定输出数据类型为 Float32
+        pct_clay_tif, 
+        
+        pct_clay_resampled_file
+    ])
+    
     # 打开重采样后的文件并将大于10000000 的值转为 NaN
     def replace_large_values_with_nan(file_path, threshold=10000000):
         with rasterio.open(file_path, 'r+') as src:
@@ -121,13 +127,16 @@ def resample_nc_to_tif(nc_file, tif_file):
     # 对重采样后的文件应用转换
     replace_large_values_with_nan(awt_soc_resampled_file)
     replace_large_values_with_nan(dom_mu_resampled_file)
+    replace_large_values_with_nan(pct_clay_resampled_file)
 
     # 绘制保存的 TIFF 文件
     plot_tif(awt_soc_resampled_file)
     plot_tif(dom_mu_resampled_file)
+    plot_tif(pct_clay_resampled_file)
 
     print(f"AWT_SOC 保存为: {awt_soc_resampled_file}")
     print(f"DOM_MU 保存为: {dom_mu_resampled_file}")
+    print(f"PCT_CLAY 保存为: {pct_clay_resampled_file}")
 
 # 调用函数进行重采样
 nc_file = 'HWSD_1247/HWSD_1247/data/HWSD_SOIL_CLM_RES.nc4'

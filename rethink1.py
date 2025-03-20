@@ -12,7 +12,7 @@ df = pd.read_csv(file_path)
 print(df.head())
 
 # 将所有列中 'Pathogen Load' 以外的列作为特征
-X = df.drop(columns=['Pathogen Load'])  # 这里删除了 'Pathogen Load' 列
+X = df.drop(columns=['Pathogen Load'])
 y = df['Pathogen Load']  # 'Pathogen Load' 作为目标列
 
 # 将数据集分为训练集和测试集
@@ -32,7 +32,6 @@ print("Selected Features:", X.columns[boruta.support_])
 X_train_selected = boruta.transform(X_train.values)
 X_test_selected = boruta.transform(X_test.values)
 
-# 创建新的随机森林回归模型并训练
 model = RandomForestRegressor(n_estimators=100, random_state=42)
 model.fit(X_train_selected, y_train)
 

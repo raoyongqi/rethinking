@@ -42,7 +42,6 @@ for tiff_file in os.listdir(tif_folder):
             result_df[tiff_file] = tiff_column
 
 # 输出整理后的 DataFrame
-print(result_df)
 
 # 如果需要保存到CSV文件
 result_df.to_csv('output.csv', index=False)

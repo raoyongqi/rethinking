@@ -11,7 +11,6 @@ def gdalwarp_resample(input_tif, target_tif, target_dx, target_dy, output_folder
         original_height = src.height
 
     # 构建 gdalwarp 命令行，用于重采样
-    print(str(target_dx))
     resample_cmd = [
         'gdalwarp', 
         '-tr', str(target_dx), str(target_dy),  # 设置目标分辨率
