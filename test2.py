@@ -83,7 +83,7 @@ X = np.stack([tif_data.flatten() for tif_data in tif_data_list], axis=1)
 coordinates = np.stack([lon, lat], axis=1)
 X = np.concatenate([coordinates,X ], axis=1)
 
-
+X_df = pd.DataFrame(X, columns=train_df.columns[:-1])
 
 train_X =  train_df.drop(columns=['pathogen load'])
 train_y = train_df['pathogen load']
@@ -92,7 +92,7 @@ rf = RandomForestRegressor(n_estimators=100, random_state=42)
 rf.fit(train_X, train_y)
 
 
-y_pred = rf.predict(X)
+y_pred = rf.predict(X_df)
 
 y_pred_2d = y_pred.reshape((rows, cols))
 

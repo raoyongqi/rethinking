@@ -83,7 +83,7 @@ X = np.stack([tif_data.flatten() for tif_data in tif_data_list], axis=1)
 
 coordinates = np.stack([lon, lat], axis=1)
 
-tif_file = 'CMIP6/ACCESS-CM2/ssp126/2021-2040/wc2.1_5m_bioc_ACCESS-CM2_ssp126_2021-2040.tif'
+tif_file = 'CMIP6/ACCESS-CM2/ssp370/2021-2040/wc2.1_5m_bioc_ACCESS-CM2_ssp370_2021-2040.tif'
 
 
 flip_tifs = {'new/dom_mu.tif', 'new/awt_soc.tif','new/pct_clay.tif', 'new/s_sand.tif', 'new/t_sand.tif'}
@@ -152,13 +152,11 @@ def flatten_and_stack_bands(tif_file):
 
         return summed_band_2d
 
-tif_file = 'CMIP6/ACCESS-CM2/ssp126/2021-2040/wc2.1_5m_tmax_ACCESS-CM2_ssp126_2021-2040.tif'
+tif_file = 'CMIP6/ACCESS-CM2/ssp370/2021-2040/wc2.1_5m_tmax_ACCESS-CM2_ssp370_2021-2040.tif'
 tmax = flatten_and_stack_bands(tif_file)
 
 X = np.concatenate([coordinates,X,stacked_bands,tmax], axis=1)
-
 X_df = pd.DataFrame(X, columns=[col for col in train_df.columns if 'pathogen load' not in col])
-
 
 train_X =  train_df.drop(columns=['pathogen load'])
 train_y = train_df['pathogen load']
@@ -171,7 +169,7 @@ y_pred = rf.predict(X_df)
 
 y_pred_2d = y_pred.reshape((rows, cols))
 
-output_tif = 'data/predicted_rf_126.tif'
+output_tif = 'data/predicted_rf_370.tif'
 
 with rasterio.open(output_tif, 'w', driver='GTiff', count=1, dtype='float32', 
                    width=cols, height=rows, crs='+proj=latlong', transform=transform) as dst:
@@ -275,7 +273,7 @@ if not os.path.isdir(tiff_folder):
 
 
 
-tiff_file ='predicted_rf_126.tif'
+tiff_file ='predicted_rf_370.tif'
 
 
 tiff_path = os.path.join(tiff_folder, tiff_file)
@@ -343,46 +341,6 @@ with rasterio.open(tiff_output_path) as cropped_src:
             merged_gdf.at[idx, 'value'] = avg_value
         else:
             merged_gdf.at[idx, 'value'] = np.nan  
-
-
-import rasterio
-import numpy as np
-
-ssp_scenario = '126'
-tiff_file1 = f'result/predicted_{ssp_scenario}_rf.tif'
-tiff_file2 = 'pl/predicted_rf.tif'
-output_file = f'result/sub_{ssp_scenario}_rf.tif'
-
-# 读取文件
-with rasterio.open(tiff_file1) as src1, rasterio.open(tiff_file2) as src2:
-    data1 = src1.read(1).astype(np.float64)
-    data2 = src2.read(1).astype(np.float64)
-    profile = src1.profile
-
-    # 处理 nodata 值
-    if src1.nodata is not None:
-        data1[data1 == src1.nodata] = np.nan
-    if src2.nodata is not None:
-        data2[data2 == src2.nodata] = np.nan
-
-    # 确保形状一致
-    if data1.shape != data2.shape:
-        raise ValueError("The shapes of the two TIFF files do not match.")
-
-    # 相减运算，忽略 nodata
-    result_data = np.where(~np.isnan(data1) & ~np.isnan(data2), data1 - data2, np.nan)
-
-# 更新 profile 并保存
-profile.update({
-    'dtype': 'float64',
-    'count': 1,
-    'nodata': np.nan
-})
-
-with rasterio.open(output_file, 'w', **profile) as dst:
-    dst.write(result_data, 1)
-
-print(f"Output TIFF file has been created at: {output_file}")
 
 # target_lon, target_lat = 104.873239, 31.789814
 
