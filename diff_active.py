@@ -53,41 +53,75 @@ def create_model(activation_function):
     model.compile(loss="mse", optimizer=tf.keras.optimizers.Adam(0.0001))
     return model
 
-# 训练并记录每个激活函数的MSE和训练时间
+import time
+import pandas as pd
+import tensorflow as tf
+
+from tensorflow.keras import backend as K
+
+# Define the shifted_relu activation function (if it's a custom function)
+def shifted_relu(x, alpha=0.3):
+    return K.maximum(alpha * x, x)
+
+def create_model(activation_function):
+    # This function should create your model using the activation function.
+    model = tf.keras.Sequential([
+        tf.keras.layers.Dense(64, activation=activation_function, input_shape=(X_train_scaled.shape[1],)),
+        tf.keras.layers.Dense(1)
+    ])
+    model.compile(optimizer='adam', loss='mse')
+    return model
+
 def train_and_record_loss_and_time(activation_function, num_trials=3):
 
-    
+    # Function to get a valid name for the activation function
+    def get_activation_function_name(activation_function):
+        if isinstance(activation_function, str):  # If it's a string like 'relu', 'elu', or 'shifted_relu'
+            return activation_function
+        elif isinstance(activation_function, tf.keras.layers.Layer):  # If it's an activation object like LeakyReLU
+            class_name = activation_function.__class__.__name__  # Get class name (e.g., 'LeakyReLU')
+            params = activation_function.get_config()  # Get any parameters (e.g., alpha for LeakyReLU)
+            if 'alpha' in params:
+                return f"{class_name}_alpha{params['alpha']}"  # For LeakyReLU, include alpha in the name
+            return class_name
+        elif callable(activation_function):  # If it's a custom function like shifted_relu
+            return activation_function.__name__  # The name of the function
+        else:
+            raise ValueError("Unsupported activation function type")
+
     for trial in range(num_trials):
         print(f"\nStarting trial {trial+1} of {num_trials}...")
 
+        # Create model with current activation function
         model = create_model(activation_function)
         es = tf.keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=0, patience=100, verbose=0, mode='auto', restore_best_weights=True)
         
+        # Measure training time
         start_time = time.time()
         history = model.fit(X_train_scaled, y_train, validation_data=(X_valid_scaled, y_valid), epochs=1000, batch_size=32, callbacks=[es], verbose=0)
         end_time = time.time()
         training_time = end_time - start_time
-        
 
+        # Get a valid name for the activation function
+        activation_function_name = get_activation_function_name(activation_function)
 
-        # 保存每次训练的历史到CSV文件
+        # Save the training history to a CSV file
         trial_history = history.history['loss']
         history_df = pd.DataFrame({'Epoch': range(1, len(trial_history) + 1), 'Loss': trial_history})
-        history_df.to_csv(f"data/{activation_function}_trial_{trial+1}_loss_history.csv", index=False)
+        history_df.to_csv(f"data/{activation_function_name}_trial_{trial+1}_loss_history.csv", index=False)
 
-        # 保存每次训练的时间到TXT文件
-        with open(f"data/{activation_function}_trial_{trial+1}_training_time.txt", 'w') as f:
-
+        # Save the training time to a TXT file
+        with open(f"data/{activation_function_name}_trial_{trial+1}_training_time.txt", 'w') as f:
             f.write(f"{training_time}")
     
-
     return True
 
-# 训练每个激活函数的多个模型并记录结果
+# Sample activations list with 'elu', 'relu', LeakyReLU, and custom shifted_relu
 activation_functions = ['elu', 'relu', tf.keras.layers.LeakyReLU(alpha=0.3), shifted_relu]
 
+# Call the function to train and record results for all activations
 for activation in activation_functions:
-    print(f"\nTraining model with {activation} activation function...")
     train_and_record_loss_and_time(activation, num_trials=3)
+
 
 print("Training history and training times saved to CSV and TXT files.")
