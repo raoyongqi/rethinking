@@ -5,7 +5,7 @@ from rasterio.enums import Resampling
 
 # 使用 GDAL Warp 进行重采样
 def gdalwarp_resample(input_tif, target_tif, target_dx, target_dy, output_folder, target_width, target_height):
-    # 读取原始 TIFF 文件的宽度和高度
+
     with rasterio.open(input_tif) as src:
         original_width = src.width
         original_height = src.height

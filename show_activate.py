@@ -2,6 +2,7 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 import scienceplots
+import matplotlib.patches as mpatches  # 用于创建方块图例
 
 # 读取每个 CSV 文件
 elu1 = pd.read_csv('data/elu_trial_1_loss_history.csv')
@@ -82,14 +83,17 @@ mean_time_df_sorted = mean_time_df.sort_values(by='Training Time', ascending=Tru
 
 # 获取排序后的激活函数顺序
 activation_order = mean_time_df_sorted['Activation Function'].tolist()
-
+relu_handle = mpatches.Patch(color='#7A506D', label='ReLU')  # Color for ReLU
+leaky_relu_handle = mpatches.Patch(color='#228B22', label=r"Leaky ReLU ($\alpha=0.1$)")  # Color for Leaky ReLU
+srelu_handle = mpatches.Patch(color='#B74A33', label="Shifted ReLU ($f(x) = \max(-1, x)$)")  # Color for Shifted ReLU
+elu_handle = mpatches.Patch(color='#87CEEB', label=r"ELU ($\alpha=1.0$)")  # Color for ELU
 
 # 设置图形大小，创建左右图布局
 with plt.style.context('science'):  # 使用科学风格
     fig, axes = plt.subplots(1, 2, figsize=(16, 8))
 
     # 设置颜色调色板
-    palette = sns.color_palette("Set2", n_colors=4)
+    palette = ['#228B22', '#B74A33', '#87CEEB', '#7A506D']
 
 
     # 创建一个字典，按排序顺序为每个激活函数分配颜色
@@ -108,22 +112,25 @@ with plt.style.context('science'):  # 使用科学风格
             sns.lineplot(data=shifted_relu_df, x='Epoch', y='Loss', label='Shifted ReLU', ax=axes[0], color=activation_color_map[activation])
 
     # 设置左侧图标题和标签
-    axes[0].set_title('Loss vs Epoch for Different Activation Functions')
     axes[0].set_xlabel('Epoch')
     axes[0].set_ylabel('Loss')
-    axes[0].legend()
+    axes[0].legend(fontsize=15)
 
     # 右侧图：绘制带置信区间的柱状图
     sns.barplot(x='Training Time', y='Activation Function', data=all_time_df_sorted, ci="sd", palette=palette, ax=axes[1])
 
     # 设置右侧图标题和标签
-    axes[1].set_title('Average Training Time with Confidence Interval for Different Activation Functions')
-    axes[1].set_xlabel('Training Time (seconds)')
-    axes[1].set_ylabel('Activation Function')
+    axes[1].set_xlabel('Time (seconds)')
+    axes[1].set_ylabel('')  # 去掉 y 轴标签
+    axes[1].set_yticks([])  # 去掉 y 轴刻度
+    axes[1].legend(handles=[relu_handle, leaky_relu_handle,srelu_handle,elu_handle], fontsize=15)
 
     # 保存图像
-    plt.savefig("data/combined_plot_with_confidence_intervals.png", dpi=300)
+    
+    plt.suptitle('Loss vs Epoch for Different Activation Functions',fontsize=20)
 
     # 显示图形
     plt.tight_layout()
+    plt.savefig("data/combined_plot_with_confidence_intervals.png", dpi=300)
+
     plt.show()

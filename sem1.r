@@ -6,7 +6,7 @@ file_path = "data/selection.csv"
 
 data <- read.csv(file_path)
 library(dplyr)
-
+install.packages("sjSDM")
 data <- data %>%
   rename(`Pathogen Load` = pathogen.load)
 

@@ -7,11 +7,11 @@ from sklearn.metrics import r2_score
 from tensorflow.keras.layers import BatchNormalization, concatenate
 
 # 读取CSV文件
-data = pd.read_csv('data/selection.csv')  # 替换为你的CSV文件路径
+data = pd.read_excel('data/merged_all.xlsx')  # 替换为你的CSV文件路径
 
 # 假设'pathogen load'是目标列，其他列作为输入
-X = data.drop(columns=['pathogen load'])  # 输入特征
-y = data['pathogen load']  # 输出目标
+X = data.drop(columns=['Pathogen Load'])  # 输入特征
+y = data['Pathogen Load']  # 输出目标
 
 # 检查数据中是否有NaN或Inf值
 print(np.any(np.isnan(X)), np.any(np.isinf(X)))
@@ -67,7 +67,7 @@ optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
 model.compile(optimizer=optimizer, loss='mean_squared_error')
 
 # 训练模型
-model.fit(X_train, y_train, epochs=100, batch_size=10)
+model.fit(X_train, y_train, epochs=1000, batch_size=10)
 
 # 进行预测
 y_pred = model(X_test)
