@@ -61,7 +61,7 @@ model.compile(optimizer='adam', loss='mse', metrics=['mae'])
 # Summary of the model
 model.summary()
 
-# history = model.fit(X_train_scaled, y_train, validation_data=(X_valid_scaled, y_valid), epochs=1000, batch_size=32)
+history = model.fit(X_train_scaled, y_train, validation_data=(X_valid_scaled, y_valid), epochs=1000, batch_size=32)
 
 # # Predict on the test set
 # y_pred = model.predict(X_test_scaled)

@@ -73,7 +73,8 @@ thm <- seminr_theme_create(manifest.reflective.shape =  "ellipse",
 # 估计 PLS 模型
 pls_model <- estimate_pls(data = data, measurements, structure)
 pls_model
-# graph <- seminr::seminr_graph(pls_model, theme = thm)
+boot_estimates <- bootstrap_model(pls_model, nboot = 1000, cores = 2)
+graph <- seminr::seminr_graph(pls_model, theme = thm)
 # 
 # # 重新调整布局为从上到下
 # layout_matrix <- layout_as_tree(graph)
