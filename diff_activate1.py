@@ -34,11 +34,11 @@ with plt.style.context('science'):
     plt.plot(x, elu_result, label=r"ELU ($\alpha=1.0$)", color='#87CEEB', linewidth=3)
 
     # Customize the plot
-    plt.title("ReLU, Leaky ReLU, Shifted ReLU, and ELU",fontsize=24)
-    plt.xlabel("x",fontsize=22)
-    plt.ylabel("f(x)",fontsize=22)
+    plt.title("ReLU, Leaky ReLU, Shifted ReLU, and ELU",fontsize=26)
+    plt.xlabel("x",fontsize=26)
+    plt.ylabel("f(x)",fontsize=26)
     
-    plt.legend(loc="best",fontsize=22)
+    plt.legend(loc="best",fontsize=26)
     plt.grid(True)
 
     # Set x and y axis limits

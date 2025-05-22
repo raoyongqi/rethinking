@@ -6,16 +6,13 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 import time
 
-# 加载数据
 file_path = 'data/merged_all.xlsx'
 data = pd.read_excel(file_path)
 
-# 特征和标签
 feature_columns = [col for col in data.columns if col != 'Pathogen Load']
 X = data[feature_columns]
 y = data['Pathogen Load']
 
-# 对数据进行划分
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=42)
 X_train, X_valid, y_train, y_valid = train_test_split(X_train, y_train, test_size=1/9, random_state=42)
 
@@ -59,12 +56,11 @@ import tensorflow as tf
 
 from tensorflow.keras import backend as K
 
-# Define the shifted_relu activation function (if it's a custom function)
 def shifted_relu(x, alpha=0.3):
     return K.maximum(alpha * x, x)
 
 def create_model(activation_function):
-    # This function should create your model using the activation function.
+
     model = tf.keras.Sequential([
         tf.keras.layers.Dense(64, activation=activation_function, input_shape=(X_train_scaled.shape[1],)),
         tf.keras.layers.Dense(1)

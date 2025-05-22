@@ -142,7 +142,7 @@ custom_colnames <- function(colnames) {
   return(colnames)
 }
 write.xlsx(coef_summary_df, "coef_summary.xlsx", rowNames = FALSE)
-
+getwd()
 latex_table <- xtable(coef_summary_df,
                       align = c("l", "l", "l", "r", "r", "l"),
                       caption = "Summary of Regression Coefficients")

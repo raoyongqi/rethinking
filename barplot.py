@@ -57,10 +57,10 @@ plt.figure(figsize=(8, 6))
 sns.barplot(x='Activation Function', y='Training Time', data=all_df_sorted, ci="sd", palette="Set2")
 
 # 设置图表的标题和标签
-plt.xlabel('Activation Function')
-plt.ylabel('Training Time (seconds)')
-plt.title('Average Training Time with Confidence Interval for Different Activation Functions')
+# plt.xlabel('Activation Function')
+# plt.ylabel('Training Time (seconds)')
+# plt.title('Average Training Time with Confidence Interval for Different Activation Functions')
 plt.tight_layout()
-
+plt.legend(fontsize=20)
 # 显示图表
 plt.show()

@@ -2,19 +2,16 @@ import os
 import h5py
 import pandas as pd
 import numpy as np
-from tqdm import tqdm  # 导入 tqdm 库
+from tqdm import tqdm
 
-# 设置 NetCDF 文件所在的文件夹路径
-folder_path = 'HWSD_1247/HWSD_1247/data'  # 替换为你的文件夹路径
 
-# 读取原始 CSV 文件
-excel_file = 'data/merge.xlsx'  # 替换为你的文件路径
+folder_path = 'HWSD_1247/HWSD_1247/data'
+
+excel_file = 'data/merge.xlsx'
 coordinates = pd.read_excel(excel_file)
 
-# 创建一个空列表来存储所有提取的数据
 all_extracted_data = []
 
-# 文件和键的映射
 files_and_keys = [
     {"filename": "AWC_CLASS.nc4", "keys": ["lat", "lon", "AWC_CLASS"]},
     {"filename": "AWT_S_SOC.nc4", "keys": ["lat", "lon", "SUM_s_c_1"]},
