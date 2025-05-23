@@ -49,18 +49,23 @@ with plt.style.context('science'):
         sns.lineplot(x='epoch', y='loss', data=batchnorm_combined, color='red', ax=axes[0], label='BatchNorm', linewidth=2)
         sns.lineplot(x='epoch', y='loss', data=without_batchnorm_combined, color='blue', ax=axes[0], label='without_BatchNorm', linewidth=2)
 
-        axes[0].set_xlabel('Epoch')
-        axes[0].set_ylabel('Loss')
-        axes[0].legend(fontsize=14)
+        axes[0].set_xlabel('Epoch', fontsize=14)
+        axes[0].set_ylabel('Loss', fontsize=14)
+        axes[0].set_ylim(10, 30)
+        axes[0].tick_params(axis='both', labelsize=14)
+        axes[0].set_xlim(0, 500) 
+
+        axes[0].legend(fontsize=20)
 
         df_plot = df.melt(var_name='Condition', value_name='Time')
-        sns.barplot(x='Time', y='Condition', hue='Condition', data=df_plot, ax=axes[1], palette=["red", "blue"])
+        sns.barplot(x='Time', y='Condition', hue='Condition', data=df_plot, ax=axes[1], palette=["red", "blue"], fontsize=14)
 
         axes[1].set_ylabel('')  # 去掉 y 轴标签
         axes[1].set_yticks([])
+        axes[1].tick_params(axis='both', labelsize=14)
         axes[1].legend(handles=[bn_handle, without_bn_handle], fontsize=14)
 
-    plt.suptitle('MSE Loss Curve with and without BatchNormalization', fontsize=16)
+    plt.suptitle('', fontsize=16)
 
     plt.tight_layout()
     plt.savefig("data/combined_plot_with_confidence_intervals.png", dpi=300)

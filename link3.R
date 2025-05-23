@@ -28,6 +28,25 @@ if ("hwsd_soil_clm_res_pct_clay" %in% colnames(df)) {
   df <- df %>%
     rename(`pct_clay` = hwsd_soil_clm_res_pct_clay)
 }
+colnames(data) <- c(
+  "Latitude",                                   # lat
+  "Longitude",                                  # lon
+  "Area-weighted Soil Organic Carbon Content",  # awt soc
+  "Dominant Mapping Unit ID",                   # dom mu
+  "Soil Sand",                                  # s_sand
+  "Topsoil Sand",                               # t_sand
+  "Height Above the Nearest Drainage",          # hand
+  "Solar Radiation",                            # srad
+  "Precipitation of Wettest Month",             # bio_13
+  "Precipitation Seasonality",                  # bio_15
+  "Precipitation of Warmest Quarter",           # bio_18
+  "Precipitation of Coldest Quarter",           # bio_19
+  "Isothermality",                              # bio_3
+  "Min Temperature of Coldest Month",           # bio_6
+  "Mean Temperature of Wettest Quarter",        # bio_8
+  "Wind Speed",                                 # wind
+  "Pathogen Load"                               # Pathogen Load
+)
 
 other_columns <- setdiff(names(data), "Pathogen Load")
 
@@ -40,14 +59,31 @@ xxxx <- data[, other_columns]
 yyyy <- data$`Pathogen Load`
 
 colnames(xxxx)
+Climate <- c(
+  "Solar Radiation",                            # srad
+  "Precipitation of Wettest Month",             # bio_13
+  "Precipitation Seasonality",                  # bio_15
+  "Precipitation of Warmest Quarter",           # bio_18
+  "Precipitation of Coldest Quarter",           # bio_19
+  "Isothermality",                              # bio_3
+  "Min Temperature of Coldest Month",           # bio_6
+  "Mean Temperature of Wettest Quarter",        # bio_8
+  "Wind Speed"                                  # wind
+)
 
+Soil <- c(
+  "Area-weighted Soil Organic Carbon Content",  # awt soc
+  "Dominant Mapping Unit ID",                   # dom mu
+  "Soil Sand",                                  # s_sand
+  "Topsoil Sand"                                # t_sand
+)
 
-Climate <- c("srad", "bio_13", "bio_15", "bio_18", "bio_19", 
-             "bio_3", "bio_6", "bio_8", "wind")
+Geo <- c(
+  "Latitude",                                   # lat
+  "Longitude",                                  # lon
+  "Height Above the Nearest Drainage"           # hand
+)
 
-Soil <- c("awt soc", "dom mu", "s_sand", "t_sand")
-
-Geo <- c("lat", "lon", "hand")
 
 # 假设 df 是你原来的数据框
 # 根据列列表重新排序
@@ -66,18 +102,19 @@ mantel <- mantel_test(yyyy, xxxx,
 mantel_subset <- mantel[, 1:4]
 
 library(openxlsx)
-
-# 提取前 4 列
+mantel_subset[["r"]] <- round(mantel_subset[["r"]], 5)
+mantel_subset_to_xlsx <-mantel_subset
+colnames(mantel_subset_to_xlsx) <- c("因变量（DV）", "自变量（IV）", "相关系数（r）", "显著性（p）")
 
 # 创建 Excel 工作簿
 wb <- createWorkbook()
 addWorksheet(wb, "Mantel Results")
 
 # 写入数据
-writeData(wb, "Mantel Results", mantel_subset)
+writeData(wb, "Mantel Results", mantel_subset_to_xlsx)
 
 # 识别显著性 p 值（例如 p < 0.05）
-sig_indices <- which(mantel_subset$p < 0.05, arr.ind = TRUE)
+sig_indices <- which(mantel_subset_to_xlsx$`显著性（p）` < 0.05, arr.ind = TRUE)
 
 # 设置加粗格式
 bold_style <- createStyle(textDecoration = "bold")
@@ -86,6 +123,7 @@ bold_style <- createStyle(textDecoration = "bold")
 for (i in sig_indices) {
   addStyle(wb, "Mantel Results", bold_style, rows = i + 1, cols = 4, gridExpand = TRUE)
 }
+getwd()
 saveWorkbook(wb, "mantel_results.xlsx", overwrite = TRUE)
 cor_matrix <- correlate(xxxx)
 
@@ -213,7 +251,6 @@ png("your_plot.png", width = 12, height = 8, units = "in", res = 600)
 # 绘制 grid 对象
 grid.draw(gt)
 
-# 关闭图形设备
 dev.off()
 traceback()
 # 在 R 启动时增加 C stack 的大小

@@ -33,7 +33,6 @@ def model():
     # 批归一化
     inputs_normalize = BatchNormalization()(inputs)
     
-    # 隐藏层（6层，每层128个神经元）
     NN1_Dense = layers.Dense(128, activation='relu')(inputs_normalize)
     NN2_Dense = layers.Dense(128, activation='relu')(inputs_normalize)
     NN3_Dense = layers.Dense(128, activation='relu')(inputs_normalize)

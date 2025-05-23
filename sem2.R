@@ -1,11 +1,13 @@
-# 定义 SEM 结构模型
+
 library(lavaan)
+
 library(semPlot)
 
-
+getwd()
 file_path = "data/selection.csv"
 
 data <- read.csv(file_path)
+
 library(dplyr)
 
 data <- data %>%

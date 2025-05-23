@@ -11,7 +11,6 @@ df['lat'].fillna(method='ffill', inplace=True)  # Forward fill for missing latit
 
 # 查看数据的前几行，确保加载正确
 
-# 将所有列中 'Pathogen Load' 以外的列作为特征
 X = df.drop(columns=['Pathogen Load'])  # 这里删除了 'Pathogen Load' 列
 y = df['Pathogen Load']  # 'Pathogen Load' 作为目标列
 

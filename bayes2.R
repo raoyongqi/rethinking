@@ -19,6 +19,27 @@ if ("hwsd_soil_clm_res_pct_clay" %in% colnames(df)) {
 }
 
 selection_scaled <- selection
+colnames(selection_scaled)
+colnames(selection_scaled) <- c(
+  "Latitude",                                                # lat
+  "Longitude",                                               # lon
+  "Area-weighted soil organic carbon content",               # awt_soc
+  "Dominant mapping unit ID",    # dom_mu
+  "Soil Sand",                                               # s_sand
+  "Topsoil Sand",                                            # t_sand
+  "Height Above the Nearest Drainage",                       # hand
+  "Solar Radiation",                                         # srad
+  "Precipitation of Wettest Month",                          # bio_13
+  "Precipitation Seasonality",    # bio_15
+  "Precipitation of Warmest Quarter",                        # bio_18
+  "Precipitation of Coldest Quarter",                        # bio_19
+  "Isothermality",                      # bio_3
+  "Min Temperature of Coldest Month",                        # bio_6
+  "Mean Temperature of Wettest Quarter",                     # bio_8
+  "Wind Speed",                                              # wind
+  "pathogen.load"                                            # pathogen.load
+)
+
 selection_scaled[ , -which(names(selection) == "pathogen.load")] <- scale(selection[ , -which(names(selection) == "pathogen.load")])
 
 fit <- stan_glm(pathogen.load ~ ., data = selection_scaled)
@@ -39,23 +60,6 @@ posterior
 plot <- mcmc_areas_data(posterior,
                    pars = params_to_plot,
                    prob = 0.8) 
-library(ggridges)
-p <- ggplot(plot, aes(x = x, y = parameter, height = scaled_density, fill = ifelse(x >= 0, "Positive", "Negative"))) +
-  geom_density_ridges(stat = "identity") +
-  theme_ridges() + # 设置主题
-  scale_fill_manual(values = c("Positive" = "darkred", "Negative" = "coral")) + # 设置颜色
-  
-  theme_publication()+
-  theme(legend.position = "none",axis.title.x = element_blank(), axis.title.y = element_blank(),
-    
-    axis.text.x = element_text(size = 25),  # 增大字体
-    axis.text.y = element_text(size = 25),  # 增大字体
-  )
-
-ggsave("bayes_plot.png", p, width = 12, height = 8, dpi = 600)
-
-
-
 theme_publication <- function(base_size = 12, base_family = "Helvetica", ...) {
   require(grid)
   require(ggthemes)
@@ -91,8 +95,30 @@ theme_publication <- function(base_size = 12, base_family = "Helvetica", ...) {
 }
 
 
+library(ggridges)
+plot$parameter <- factor(plot$parameter, levels = unique(plot$parameter))  # 保持原顺序
+plot$parameter
+levels(plot$parameter) <- gsub('"', '', levels(plot$parameter))  # 去掉可能的引号字符
+p <- ggplot(plot, aes(x = x, y = parameter, height = scaled_density, fill = ifelse(x >= 0, "Positive", "Negative"))) +
+  geom_density_ridges(stat = "identity") +
+  theme_ridges() + # 设置主题
+  scale_fill_manual(values = c("Positive" = "darkred", "Negative" = "coral")) + # 设置颜色
+  
+  theme_publication()+
+  theme(legend.position = "none",axis.title.x = element_blank(), axis.title.y = element_blank(),
+    
+    axis.text.x = element_text(size = 25),  # 增大字体
+    axis.text.y = element_text(size = 25),  # 增大字体
+  )+
+  scale_y_discrete(labels = function(x) gsub("`", "", x)) 
 
-ggsave("high_res_plot.png", plot = plot, dpi = 300, width = 10, height = 8)
+ggsave("bayes_plot.png", p, width = 12, height = 8, dpi = 600)
+
+
+
+
+
+# ggsave("high_res_plot.png", plot = plot, dpi = 300, width = 10, height = 8)
 
 all_params <- colnames(posterior)
 params_to_keep <- setdiff(all_params, exclude_params)
@@ -107,10 +133,8 @@ coef_summary <- apply(posterior_filtered, 2, function(x) {
   )
 })
 
-# 转置并整理为数据框
 coef_summary_df <- as.data.frame(t(coef_summary))
 
-# 重命名列名
 colnames(coef_summary_df) <- c("Estimate", "Lower", "Upper")
 
 
@@ -120,15 +144,12 @@ coef_summary_df$Est.error <- coef_summary_df$Estimate - coef_summary_df$Lower
 coef_summary_df$`95%CI(Credible intervals)` <- paste(coef_summary_df$Lower, coef_summary_df$Upper, sep = "-")
 rownames(coef_summary_df) <- sapply(rownames(coef_summary_df), function(x) gsub("_", " ", x))
 
-# 移除不需要的列
 coef_summary_df <- subset(coef_summary_df, select = -c(Lower, Upper))
 
-# 添加 Predictor 和 Response 列
 coef_summary_df$Predictor <- rownames(coef_summary_df)
 coef_summary_df$Response <- "Plant Disease"
 
 print(coef_summary_df)
-# 重新排列列顺序
 coef_summary_df <- coef_summary_df[, c("Response", "Predictor", "Estimate", "95%CI(Credible intervals)")]
 coef_summary_df
 library(openxlsx)
@@ -141,6 +162,9 @@ custom_colnames <- function(colnames) {
   colnames <- gsub("95%CI\\(Credible intervals\\)", "95\\% CI\\par(Credible intervals)", colnames)
   return(colnames)
 }
+
+library(stringr)
+coef_summary_df$Predictor <- str_remove_all(coef_summary_df$Predictor, "`")
 write.xlsx(coef_summary_df, "coef_summary.xlsx", rowNames = FALSE)
 getwd()
 latex_table <- xtable(coef_summary_df,

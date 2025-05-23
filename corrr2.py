@@ -40,13 +40,12 @@ data_df = pd.DataFrame({
     'C': [3, 6, 9, 12]
 })
 
-# 将DataFrame转换为NumPy数组
 data_np = data_df.to_numpy()
+
 import scipy.stats as stats
 
 corr_matrix = stats.spearmanr(data_np)
 
-# 使用Pandas计算Spearman相关系数矩阵
 corr_matrix_corr = data_df.corr(method='spearman')
 
 print("NumPy计算的Spearman相关系数矩阵:")

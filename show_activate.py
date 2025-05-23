@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 import scienceplots
 import matplotlib.patches as mpatches  # 用于创建方块图例
 
-# 读取每个 CSV 文件
 elu1 = pd.read_csv('data/elu_trial_1_loss_history.csv')
 elu2 = pd.read_csv('data/elu_trial_2_loss_history.csv')
 elu3 = pd.read_csv('data/elu_trial_3_loss_history.csv')
@@ -57,39 +56,34 @@ def read_first_line(files, activation_function):
     times = []
     for file in files:
         with open(file, 'r') as f:
-            first_line = f.readline().strip()  # 读取并去掉换行符
-            times.append(float(first_line))  # 转换为浮动类型并加入列表
-    # 创建一个 DataFrame，列为训练时间，并添加激活函数标签
+            first_line = f.readline().strip()
+            times.append(float(first_line))
     return pd.DataFrame({
         'Training Time': times,
         'Activation Function': [activation_function] * len(times)
     })
 
-# 读取每个激活函数的文件第一行数据并合并为一个 DataFrame
 elu_time_df = read_first_line(elu_files, 'ELU')
 LeakyReLU_time_df = read_first_line(LeakyReLU_files, 'LeakyReLU')
 relu_time_df = read_first_line(relu_files, 'ReLU')
 shifted_relu_time_df = read_first_line(shifted_relu_files, 'Shifted ReLU')
 
-# 合并所有 DataFrame
 all_time_df = pd.concat([elu_time_df, LeakyReLU_time_df, relu_time_df, shifted_relu_time_df], ignore_index=True)
 all_time_df_sorted = all_time_df.sort_values(by='Training Time', ascending=True)
 
-# 对 DataFrame 按照 "Training Time" 列进行升序排序
 mean_time_df = all_time_df.groupby('Activation Function')['Training Time'].mean().reset_index()
 
-# 根据均值排序
 mean_time_df_sorted = mean_time_df.sort_values(by='Training Time', ascending=True)
 
-# 获取排序后的激活函数顺序
 activation_order = mean_time_df_sorted['Activation Function'].tolist()
-relu_handle = mpatches.Patch(color='#7A506D', label='ReLU')  # Color for ReLU
-leaky_relu_handle = mpatches.Patch(color='#228B22', label=r"Leaky ReLU ($\alpha=0.1$)")  # Color for Leaky ReLU
-srelu_handle = mpatches.Patch(color='#B74A33', label="Shifted ReLU ($f(x) = \max(-1, x)$)")  # Color for Shifted ReLU
-elu_handle = mpatches.Patch(color='#87CEEB', label=r"ELU ($\alpha=1.0$)")  # Color for ELU
+relu_handle = mpatches.Patch(color='#7A506D', label='ReLU')
+leaky_relu_handle = mpatches.Patch(color='#228B22', label=r"Leaky ReLU")
+srelu_handle = mpatches.Patch(color='#B74A33', label="Shifted ReLU")
+elu_handle = mpatches.Patch(color='#87CEEB', label=r"ELU")
 
-# 设置图形大小，创建左右图布局
-with plt.style.context('science'):  # 使用科学风格
+with plt.style.context('science'):
+
+    legend_properties = {'weight':'bold'}
     fig, axes = plt.subplots(1, 2, figsize=(16, 8))
 
     # 设置颜色调色板
@@ -103,31 +97,36 @@ with plt.style.context('science'):  # 使用科学风格
     # 按照排序顺序绘制折线图
     for activation in activation_order:
         if activation == 'ELU':
-            sns.lineplot(data=elu_df, x='Epoch', y='Loss', label='ELU', ax=axes[0], color=activation_color_map[activation])
+            sns.lineplot(data=elu_df, x='Epoch', y='Loss', label='ELU', ax=axes[0], color=activation_color_map[activation], linewidth=2)
         elif activation == 'LeakyReLU':
-            sns.lineplot(data=LeakyReLU_df, x='Epoch', y='Loss', label='LeakyReLU', ax=axes[0], color=activation_color_map[activation])
+            sns.lineplot(data=LeakyReLU_df, x='Epoch', y='Loss', label='LeakyReLU', ax=axes[0], color=activation_color_map[activation], linewidth=2)
         elif activation == 'ReLU':
-            sns.lineplot(data=relu_df, x='Epoch', y='Loss', label='ReLU', ax=axes[0], color=activation_color_map[activation])
+            sns.lineplot(data=relu_df, x='Epoch', y='Loss', label='ReLU', ax=axes[0], color=activation_color_map[activation], linewidth=2)
         elif activation == 'Shifted ReLU':
-            sns.lineplot(data=shifted_relu_df, x='Epoch', y='Loss', label='Shifted ReLU', ax=axes[0], color=activation_color_map[activation])
+            sns.lineplot(data=shifted_relu_df, x='Epoch', y='Loss', label='Shifted ReLU', ax=axes[0], color=activation_color_map[activation], linewidth=2)
 
     # 设置左侧图标题和标签
-    axes[0].set_xlabel('Epoch')
-    axes[0].set_ylabel('Loss')
-    axes[0].legend(fontsize=15)
+    axes[0].set_xlabel('Epoch',fontsize=14)
+    axes[0].set_ylabel('Loss', fontsize=14)
+    axes[0].set_ylim(10, 30)
+    axes[0].tick_params(axis='both', labelsize=14)
 
-    # 右侧图：绘制带置信区间的柱状图
+    axes[0].set_xlim(0, 400) 
+    legend_1 =axes[0].legend(fontsize=26,)
+
+
     sns.barplot(x='Training Time', y='Activation Function', data=all_time_df_sorted, ci="sd", palette=palette, ax=axes[1])
 
-    # 设置右侧图标题和标签
     axes[1].set_xlabel('Time (seconds)')
     axes[1].set_ylabel('')  # 去掉 y 轴标签
     axes[1].set_yticks([])  # 去掉 y 轴刻度
-    axes[1].legend(handles=[relu_handle, leaky_relu_handle,srelu_handle,elu_handle], fontsize=15)
+    axes[1].tick_params(axis='both', labelsize=14)
+
+    legend_2 = axes[1].legend(handles=[relu_handle, leaky_relu_handle,srelu_handle,elu_handle],  loc='upper right',fontsize=20,)
 
     # 保存图像
     
-    plt.suptitle('Loss vs Epoch for Different Activation Functions',fontsize=20)
+    plt.suptitle('',fontsize=26)
 
     # 显示图形
     plt.tight_layout()
