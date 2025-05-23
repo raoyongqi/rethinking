@@ -18,7 +18,7 @@ y = selection['pathogen load']
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=random_state)
 
 ntree_values = np.arange(10, 201, 20)
-mtry_values = np.arange(3, 11)
+mtry_values = np.arange(3, 11,3)
 
 rmse_dict = {}
 r2_dict = {}
@@ -52,48 +52,52 @@ for mtry in mtry_values:
 # 输出训练完成的提示信息
 print("Training completed.")
 
-import scienceplots
 
 
 import matplotlib.pyplot as plt
 
 from scipy.interpolate import UnivariateSpline
 import seaborn as sns
+font_size = 30
 
-with plt.style.context('science'):
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
-    colors = sns.color_palette("deep", len(mtry_values))
+plt.rcParams.update({
+    'font.size': font_size,
+    'font.family': 'Arial'
+})
 
-    # RMSE 曲线
-    for idx, mtry in enumerate(mtry_values):
-        spline = UnivariateSpline(ntree_values, rmse_dict[mtry], s=1)  # s=1 控制平滑度
-        
-        x_smooth = np.linspace(min(ntree_values), max(ntree_values), 300)
-        y_smooth = spline(x_smooth)
-        ax1.plot(x_smooth, y_smooth, label=f'mtry={mtry}', linewidth=2, color=colors[idx])
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
+colors = sns.color_palette("deep", len(mtry_values))
 
-    ax1.set_title('RMSE vs ntree and mtry', fontdict={'size': 20, 'weight': 'bold'})
-    ax1.set_xlabel('ntree', fontdict={'size': 18, 'weight': 'bold'})
-    ax1.set_ylabel('RMSE', fontdict={'size': 18, 'weight': 'bold'})
-    ax1.legend(title='mtry', fontsize=16, title_fontsize=16, loc='best')
-    ax1.tick_params(axis='both', which='major', labelsize=16)
+# RMSE 曲线
+for idx, mtry in enumerate(mtry_values):
+    spline = UnivariateSpline(ntree_values, rmse_dict[mtry], s=1)  # s=1 控制平滑度
+    
+    x_smooth = np.linspace(min(ntree_values), max(ntree_values), 300)
+    y_smooth = spline(x_smooth)
+    ax1.plot(x_smooth, y_smooth, label=f'mtry={mtry}', linewidth=4, color=colors[idx])
 
-    # R² 曲线
-    for idx, mtry in enumerate(mtry_values):
-        spline = UnivariateSpline(ntree_values, r2_dict[mtry], s=1)
-        x_smooth = np.linspace(min(ntree_values), max(ntree_values), 300)
-        y_smooth = spline(x_smooth)
-        ax2.plot(x_smooth, y_smooth, label=f'mtry={mtry}', linewidth=2, color=colors[idx])
+# ax1.set_title(''})
+ax1.set_xlabel('ntree', fontdict={'size': 18,})
+ax1.set_ylabel('RMSE', fontdict={'size': 18, })
+ax1.legend(title='mtry', fontsize=16, title_fontsize=16, loc='best')
+ax1.tick_params(axis='both', which='major', labelsize=16)
 
-    ax2.set_title('R² vs ntree and mtry', fontdict={'size': 20, 'weight': 'bold'})
-    ax2.set_xlabel('ntree', fontdict={'size': 18, 'weight': 'bold'})
-    ax2.set_ylabel('R²', fontdict={'size': 18, 'weight': 'bold'})
-    ax2.legend(title='mtry', fontsize=16, title_fontsize=16, loc='best')
-    ax2.tick_params(axis='both', which='major', labelsize=16)
+# R² 曲线
+for idx, mtry in enumerate(mtry_values):
+    spline = UnivariateSpline(ntree_values, r2_dict[mtry], s=1)
+    x_smooth = np.linspace(min(ntree_values), max(ntree_values), 300)
+    y_smooth = spline(x_smooth)
+    ax2.plot(x_smooth, y_smooth, label=f'mtry={mtry}', linewidth=4, color=colors[idx])
 
-    plt.tight_layout()
-    plt.savefig("data/treemtry_smooth.png", dpi=300)
-    plt.show()
+ax2.set_title('')
+ax2.set_xlabel('ntree', fontdict={'size': 18})
+ax2.set_ylabel('R-Squared', fontdict={'size': 18})
+ax2.legend(title='mtry', fontsize=16, title_fontsize=16, loc='best')
+ax2.tick_params(axis='both', which='major', labelsize=16)
+
+plt.tight_layout()
+plt.savefig("data/treemtry_smooth.png", dpi=300)
+plt.show()
 
 rmse_df = pd.DataFrame(rmse_dict, index=ntree_values)
 rmse_df.index.name = 'ntree'

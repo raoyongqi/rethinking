@@ -41,33 +41,35 @@ import scienceplots
 bn_handle = mpatches.Patch(color='red', label='BatchNorm')   # 创建红色方块
 without_bn_handle = mpatches.Patch(color='blue', label='without_BatchNorm')  # 创建蓝色方块
 
-with plt.style.context('science'):
-# 创建一个 1x2 的子图 (左右布局)
-    fig, axes = plt.subplots(1, 2, figsize=(14, 6), gridspec_kw={'width_ratios': [6, 4]})
-    # 绘制 Epoch vs Loss 曲线图
-    with plt.style.context('science'):
-        sns.lineplot(x='epoch', y='loss', data=batchnorm_combined, color='red', ax=axes[0], label='BatchNorm', linewidth=2)
-        sns.lineplot(x='epoch', y='loss', data=without_batchnorm_combined, color='blue', ax=axes[0], label='without_BatchNorm', linewidth=2)
+plt.rcParams["font.family"] = "Arial"
+plt.rcParams["font.size"] = 20
 
-        axes[0].set_xlabel('Epoch', fontsize=14)
-        axes[0].set_ylabel('Loss', fontsize=14)
-        axes[0].set_ylim(10, 30)
-        axes[0].tick_params(axis='both', labelsize=14)
-        axes[0].set_xlim(0, 500) 
 
-        axes[0].legend(fontsize=20)
 
-        df_plot = df.melt(var_name='Condition', value_name='Time')
-        sns.barplot(x='Time', y='Condition', hue='Condition', data=df_plot, ax=axes[1], palette=["red", "blue"], fontsize=14)
+fig, axes = plt.subplots(1, 2, figsize=(14, 6), gridspec_kw={'width_ratios': [4, 6]})
+# 绘制 Epoch vs Loss 曲线图
+sns.lineplot(x='epoch', y='loss', data=batchnorm_combined, color='red', ax=axes[0], label='BatchNorm', linewidth=2)
+sns.lineplot(x='epoch', y='loss', data=without_batchnorm_combined, color='blue', ax=axes[0], label='without_BatchNorm', linewidth=2)
 
-        axes[1].set_ylabel('')  # 去掉 y 轴标签
-        axes[1].set_yticks([])
-        axes[1].tick_params(axis='both', labelsize=14)
-        axes[1].legend(handles=[bn_handle, without_bn_handle], fontsize=14)
+axes[0].set_xlabel('Epoch', )
+axes[0].set_ylabel('Loss', )
+axes[0].set_ylim(10, 30)
+axes[0].tick_params(axis='both', )
+axes[0].set_xlim(0, 500) 
 
-    plt.suptitle('', fontsize=16)
+axes[0].legend(fontsize=20)
 
-    plt.tight_layout()
-    plt.savefig("data/combined_plot_with_confidence_intervals.png", dpi=300)
-    # 显示图形
-    plt.show()
+df_plot = df.melt(var_name='Condition', value_name='Time')
+sns.barplot(x='Time', y='Condition', hue='Condition', data=df_plot, ax=axes[1], palette=["red", "blue"], )
+
+axes[1].set_ylabel('')  # 去掉 y 轴标签
+axes[1].set_yticks([])
+axes[1].tick_params(axis='both', )
+axes[1].legend(handles=[bn_handle, without_bn_handle], )
+
+plt.suptitle('', fontsize=16)
+
+plt.tight_layout()
+plt.savefig("data/combined_plot_with_confidence_intervals.png", dpi=300)
+# 显示图形
+plt.show()

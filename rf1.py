@@ -76,8 +76,8 @@ def holdout_grid_search(clf, X_train, y_train, X_valid, y_valid, hyperparams, fi
 
 
 hyperparams = {
-    'max_depth': [10, 20, 30, 50, 75, 100, 150, 200, 300, 400, 500, 600, 700, 1000],  # 控制树的深度
-    'n_estimators': [50, 100, 150, 200, 300, 400, 500]  # 控制树的数量
+    'max_depth': [10, 20, 30, 50, 75, 100, 150, 200, 300, 400, 500, 600, 700, 1000],
+    'n_estimators': [50, 100, 150, 200, 300, 400, 500]
 }
 
 fixed_hyperparams = {
@@ -105,24 +105,28 @@ all_mses, best_rf, best_hyperparams = random_forest_grid_search(X_train, y_train
 
 
 def plot_rf_metric(scores, objective, yLabel, filename="data/rf_metric.png"):
-    with plt.style.context('science'):
-        fig, ax = plt.subplots(figsize=(12, 6))  # 设置宽高比为 2:1
-        
-        num_configs = np.arange(1, len(scores) + 1)
-        ax.plot(num_configs, scores, '-o', color='gray', alpha=0.8)
+    font_size = 30
+    plt.rcParams.update({
+        'font.size': font_size,
+        'font.family': 'Arial'
+    })
+    fig, ax = plt.subplots(figsize=(12, 6))  # 设置宽高比为 2:1
+    
+    num_configs = np.arange(1, len(scores) + 1)
+    ax.plot(num_configs, scores, '-o', color='gray', alpha=0.8, linewidth=4)
 
-        idx = np.argmin(scores) if objective == 'min' else np.argmax(scores)
-        ax.plot(num_configs[idx], scores[idx], 'P', color='red', ms=10)
+    idx = np.argmin(scores) if objective == 'min' else np.argmax(scores)
+    ax.plot(num_configs[idx], scores[idx], 'P', color='red', ms=10)
 
-        ax.set_xlabel("Configuration number", fontsize=22)  # 增大 X 轴标签字体
-        ax.set_ylabel(yLabel, fontsize=22)  # 增大 Y 轴标签字体
+    ax.set_xlabel("Configuration number", fontsize=22)  # 增大 X 轴标签字体
+    ax.set_ylabel(yLabel, fontsize=22)  # 增大 Y 轴标签字体
 
-        ax.tick_params(axis='both', labelsize=20)  # 增大坐标轴刻度字体
+    ax.tick_params(axis='both', labelsize=20)  # 增大坐标轴刻度字体
 
-        plt.tight_layout()  # 防止标签被裁剪
-        plt.savefig(filename, dpi=300)  # 保存高分辨率图片
-        
-        plt.show()
+    plt.tight_layout()  # 防止标签被裁剪
+    plt.savefig(filename, dpi=300)  # 保存高分辨率图片
+    
+    plt.show()
         
 
 plot_rf_metric(all_mses, 'min', 'MSE')

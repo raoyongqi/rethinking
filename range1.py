@@ -48,14 +48,16 @@ rf = RandomForestRegressor(n_estimators=100, random_state=42)
 rfe = RFE(estimator=rf, n_features_to_select=16)
 rfe.fit(X_train, y_train)
 
+feature_columns = list(dict.fromkeys(feature_columns))
 selected_features = [feature for feature, support in zip(feature_columns, rfe.support_) if support]
+print("选中的特征：", selected_features)
 
-df = data[selected_features]
+
 
 sedf = data[selected_features + ['pathogen load']]
-
-
+print(len(sedf.columns))
 sedf.to_csv('data/selection.csv', index=False)
+
 
 # range_df = pd.DataFrame({
 #     'Variable': df.columns,               # 获取所有列名

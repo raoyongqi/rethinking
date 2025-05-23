@@ -233,8 +233,6 @@ pyplot.show()
 
 
 
-# Evaluate Algorithms: Standardization
-# suspect that the differing scales of the raw data may be negatively impacting the skill of some of the algorithms.
 pipelines = []
 pipelines.append(('ScaledLR', Pipeline([('Scaler', StandardScaler()),('LR',LinearRegression())])))
 

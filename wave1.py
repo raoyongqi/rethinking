@@ -67,48 +67,38 @@ def build_model_without_batchnorm():
     num_blocks = 2
     dilation_rates = (1, 2, 4, 8, 16, 32)
 
-    # 添加卷积层
     for _ in range(num_blocks):
         for rate in dilation_rates:
             x = tf.keras.layers.Conv1D(filters=32, kernel_size=2, activation="elu", dilation_rate=rate, padding='valid')(x)
 
-    # 添加Dropout层
     x = tf.keras.layers.Dropout(0.2)(x)
 
-    # 添加卷积层和Flatten层
     x = tf.keras.layers.Conv1D(filters=32, kernel_size=1)(x)
     x = tf.keras.layers.Flatten()(x)
 
-    # 输出层
     x = tf.keras.layers.Dense(1)(x)
 
-    # 创建模型
     model = tf.keras.models.Model(inputs=[input_x], outputs=[x])
 
-    # 编译模型
     model.compile(loss="mse", optimizer=tf.keras.optimizers.Adam(0.0001))
     return model
 
-# 定义训练和评估过程
 def train_and_evaluate(model, X_train, y_train, X_valid, y_valid):
     es = tf.keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=0, patience=100, verbose=0, mode='auto', restore_best_weights=True)
-    start_time = time.time()  # 记录训练开始时间
+    start_time = time.time()
     history = model.fit(X_train, y_train, validation_data=(X_valid, y_valid), epochs=1000, batch_size=32, callbacks=[es], verbose=0)
-    end_time = time.time()  # 记录训练结束时间
-    training_time = end_time - start_time  # 计算训练时间
+    end_time = time.time()
+    training_time = end_time - start_time 
     return history, training_time
 
 
 
-# 定义多次训练的函数
 def train_multiple_times(model_builder, X_train, y_train, X_valid, y_valid, num_trials=5, model_type='BatchNorm'):
 
     
-    # 多次训练模型
     for trial in range(1, num_trials + 1):
         print(f"\nStarting trial {trial} of {num_trials}...")
         
-        # 使用模型构建器函数来创建模型
         model = model_builder()
         
         # 训练并评估模型

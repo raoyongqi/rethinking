@@ -45,31 +45,36 @@ print(models)
 
 
 import scienceplots
-
 idx = [i for i in range(41)]
 
-with plt.style.context('science'):
-    fig, ax = plt.subplots(figsize=(12, 6))  # 设置宽高比 2:1
-    ax.set_facecolor('white')
+# with plt.style.context('science'):
+plt.rcParams['font.family'] = 'Arial'         # 设置字体为 Arial
+# plt.rcParams['font.weight'] = 'bold'          # 设置默认字体为加粗
+# plt.rcParams['axes.labelweight'] = 'bold'     # 坐标轴标签加粗
+# plt.rcParams['axes.titleweight'] = 'bold'     # 标题加粗
+plt.rcParams['xtick.labelsize'] = 16
+plt.rcParams['ytick.labelsize'] = 16
 
-    ax.plot(idx, models["RMSE"][:41], label="RMSE", marker='o')
+fig, ax = plt.subplots(figsize=(12, 6))  # 设置宽高比 2:1
+ax.set_facecolor('white')
 
-    ax.annotate(models.index[0], 
-                (1, models["RMSE"][0]), 
-                xytext=(3, 3),                fontsize=22,  # 设置字体大小
-                arrowprops=dict(arrowstyle="simple", color="red"))
+ax.plot(idx, models["RMSE"][:41], label="RMSE", marker='o',linewidth=4)
 
-    print(models.index[40])
-    ax.annotate(models.index[40], 
-                (40, models["RMSE"][40]), 
-                xytext=(35, 5),                fontsize=22,  # 设置字体大小
-                arrowprops=dict(arrowstyle="simple", color="red"))
+ax.annotate(models.index[0], 
+            (1, models["RMSE"][0]), 
+            xytext=(3, 3),                fontsize=26,  # 设置字体大小
+            arrowprops=dict(arrowstyle="simple", color="red"))
+ax.legend(fontsize=20)
+print(models.index[40])
+ax.annotate(models.index[40], 
+            (40, models["RMSE"][40]), 
+            xytext=(35, 5),                fontsize=20,  # 设置字体大小
+            arrowprops=dict(arrowstyle="simple", color="red"))
 
-    ax.set_xlabel("Model Index", fontsize=22)  # 增大 X 轴字体
-    ax.set_ylabel("Metrics", fontsize=22)  # 增大 Y 轴字体
-    ax.tick_params(axis='both', labelsize=20)  # 增大坐标轴刻度字体
+ax.set_xlabel("Model Index", fontsize=20)  # 增大 X 轴字体
+ax.set_ylabel("Metrics", fontsize=20)  # 增大 Y 轴字体
+ax.tick_params(axis='both', labelsize=20)  # 增大坐标轴刻度字体
 
-    ax.legend()
-    plt.tight_layout()
-    plt.savefig("data/lazy1.png", dpi=300)  # 保存高分辨率 PNG 图片
-    plt.show()
+plt.tight_layout()
+plt.savefig("data/lazy1.png", dpi=300)  # 保存高分辨率 PNG 图片
+plt.show()

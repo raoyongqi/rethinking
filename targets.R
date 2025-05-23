@@ -7,12 +7,11 @@ devtools::install_github("rstudio/tensorflow")
 library(tensorflow)
 install_tensorflow()
 
-# virtualenv_create('r-reticulate')
 py_config()
 Sys.setenv("RETICULATE_PYTHON" = "C:/Python/Python311/python.exe")
 
 tensorflow::install_tensorflow(
-  version = "release", # or "2.16" or "2.17" 
+  version = "release",
   envname = "r-tensorflow", 
   extra_packages = "tf_keras", # legacy keras
   python_version = "3.11"

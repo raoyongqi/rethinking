@@ -15,7 +15,6 @@ config = {
     'font.size': 24,
     "mathtext.fontset": 'stix',
     "font.serif": ['SimSun'],
-    'font.weight': 'bold'
 }
 
 mpl.rcParams.update(config)
@@ -72,7 +71,7 @@ def point_plot(pre_title: str, tif_file: str):
         cbar = plt.colorbar(im, cax=cax, orientation='horizontal')
 
         # Add label under the color bar
-        cax.set_xlabel('Pathogen Load', fontsize=24, fontweight='bold', labelpad=15)
+        cax.set_xlabel('Pathogen Load', fontsize=24, labelpad=15)
 
     # Add gridlines and labels for latitude and longitude
     ax.gridlines(draw_labels=True, linestyle='-', lw=0)  # `-` ensures there is no line drawn

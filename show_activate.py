@@ -81,55 +81,57 @@ leaky_relu_handle = mpatches.Patch(color='#228B22', label=r"Leaky ReLU")
 srelu_handle = mpatches.Patch(color='#B74A33', label="Shifted ReLU")
 elu_handle = mpatches.Patch(color='#87CEEB', label=r"ELU")
 
-with plt.style.context('science'):
+# with plt.style.context('science'):
+plt.rcParams["font.family"] = "Arial"
+plt.rcParams["font.size"] = 20
 
-    legend_properties = {'weight':'bold'}
-    fig, axes = plt.subplots(1, 2, figsize=(16, 8))
+legend_properties = {'weight':'bold'}
+fig, axes = plt.subplots(1, 2, figsize=(16, 8))
 
-    # 设置颜色调色板
-    palette = ['#228B22', '#B74A33', '#87CEEB', '#7A506D']
-
-
-    # 创建一个字典，按排序顺序为每个激活函数分配颜色
-    activation_color_map = {activation: palette[i] for i, activation in enumerate(activation_order)}
+# 设置颜色调色板
+palette = ['#228B22', '#B74A33', '#87CEEB', '#7A506D']
 
 
-    # 按照排序顺序绘制折线图
-    for activation in activation_order:
-        if activation == 'ELU':
-            sns.lineplot(data=elu_df, x='Epoch', y='Loss', label='ELU', ax=axes[0], color=activation_color_map[activation], linewidth=2)
-        elif activation == 'LeakyReLU':
-            sns.lineplot(data=LeakyReLU_df, x='Epoch', y='Loss', label='LeakyReLU', ax=axes[0], color=activation_color_map[activation], linewidth=2)
-        elif activation == 'ReLU':
-            sns.lineplot(data=relu_df, x='Epoch', y='Loss', label='ReLU', ax=axes[0], color=activation_color_map[activation], linewidth=2)
-        elif activation == 'Shifted ReLU':
-            sns.lineplot(data=shifted_relu_df, x='Epoch', y='Loss', label='Shifted ReLU', ax=axes[0], color=activation_color_map[activation], linewidth=2)
-
-    # 设置左侧图标题和标签
-    axes[0].set_xlabel('Epoch',fontsize=14)
-    axes[0].set_ylabel('Loss', fontsize=14)
-    axes[0].set_ylim(10, 30)
-    axes[0].tick_params(axis='both', labelsize=14)
-
-    axes[0].set_xlim(0, 400) 
-    legend_1 =axes[0].legend(fontsize=26,)
+# 创建一个字典，按排序顺序为每个激活函数分配颜色
+activation_color_map = {activation: palette[i] for i, activation in enumerate(activation_order)}
 
 
-    sns.barplot(x='Training Time', y='Activation Function', data=all_time_df_sorted, ci="sd", palette=palette, ax=axes[1])
+# 按照排序顺序绘制折线图
+for activation in activation_order:
+    if activation == 'ELU':
+        sns.lineplot(data=elu_df, x='Epoch', y='Loss', label='ELU', ax=axes[0], color=activation_color_map[activation], linewidth=2)
+    elif activation == 'LeakyReLU':
+        sns.lineplot(data=LeakyReLU_df, x='Epoch', y='Loss', label='LeakyReLU', ax=axes[0], color=activation_color_map[activation], linewidth=2)
+    elif activation == 'ReLU':
+        sns.lineplot(data=relu_df, x='Epoch', y='Loss', label='ReLU', ax=axes[0], color=activation_color_map[activation], linewidth=2)
+    elif activation == 'Shifted ReLU':
+        sns.lineplot(data=shifted_relu_df, x='Epoch', y='Loss', label='Shifted ReLU', ax=axes[0], color=activation_color_map[activation], linewidth=2)
 
-    axes[1].set_xlabel('Time (seconds)')
-    axes[1].set_ylabel('')  # 去掉 y 轴标签
-    axes[1].set_yticks([])  # 去掉 y 轴刻度
-    axes[1].tick_params(axis='both', labelsize=14)
+# 设置左侧图标题和标签
+axes[0].set_xlabel('Epoch',)
+axes[0].set_ylabel('Loss', )
+axes[0].set_ylim(10, 30)
+axes[0].tick_params(axis='both', )
 
-    legend_2 = axes[1].legend(handles=[relu_handle, leaky_relu_handle,srelu_handle,elu_handle],  loc='upper right',fontsize=20,)
+axes[0].set_xlim(0, 400) 
+legend_1 =axes[0].legend()
 
-    # 保存图像
-    
-    plt.suptitle('',fontsize=26)
 
-    # 显示图形
-    plt.tight_layout()
-    plt.savefig("data/combined_plot_with_confidence_intervals.png", dpi=300)
+sns.barplot(x='Training Time', y='Activation Function', data=all_time_df_sorted, ci="sd", palette=palette, ax=axes[1])
 
-    plt.show()
+axes[1].set_xlabel('Time (seconds)')
+axes[1].set_ylabel('')  # 去掉 y 轴标签
+axes[1].set_yticks([])  # 去掉 y 轴刻度
+axes[1].tick_params(axis='both', )
+
+legend_2 = axes[1].legend(handles=[relu_handle, leaky_relu_handle,srelu_handle,elu_handle],  loc='upper right')
+
+# 保存图像
+
+plt.suptitle('',)
+
+# 显示图形
+plt.tight_layout()
+plt.savefig("data/combined_plot_with_confidence_intervals.png", dpi=300)
+
+plt.show()

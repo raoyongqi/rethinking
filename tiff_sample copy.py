@@ -14,7 +14,6 @@ config = {
     'font.size': 24,
     "mathtext.fontset": 'stix',
     "font.serif": ['SimSun'],
-    'font.weight': 'bold'
 }
 mpl.rcParams.update(config)
 mpl.rcParams['axes.unicode_minus'] = False
@@ -29,17 +28,15 @@ map_china_gdf = gpd.read_file(map_china_path)
 
 
 def point_plot(fig, ax, tif_file: str, pre_title: str, i: int):
-    # Set the extent of the map (China region)
+
     ax.set_extent([73.2, 135, 17, 55], crs=ccrs.PlateCarree())  # 设置地图的范围
 
-    # Add features to the map
     ax.add_feature(cfeatur.OCEAN.with_scale('10m'), zorder=2)
     ax.add_feature(cfeatur.LAKES.with_scale('10m'), zorder=2)
 
     # Plot the boundary file (adjust for CRS)
     bound_file.to_crs("EPSG:4326").plot(ax=ax, color='none', edgecolor='black', linewidth=0.8)
 
-    # Plot China boundaries if available
     if map_china_gdf is not None:
         map_china_gdf.to_crs("EPSG:4326").plot(ax=ax, color='none', edgecolor='gray', linewidth=1)
 
@@ -71,10 +68,10 @@ def point_plot(fig, ax, tif_file: str, pre_title: str, i: int):
         cbar = plt.colorbar(im, cax=cax, orientation='horizontal')
 
         # Add label under the color bar
-        cax.set_xlabel('Changes in Pathogen Load', fontsize=24, fontweight='bold', labelpad=15)
+        cax.set_xlabel('Changes in Pathogen Load', fontsize=24,  labelpad=15)
 
     # Set the main title
-    ax.text(0.05, 0.95, f"{chr(97 + i)}", transform=ax.transAxes, fontsize=20, fontweight='bold', color='black', ha='center', va='center')
+    ax.text(0.05, 0.95, f"{chr(97 + i)}", transform=ax.transAxes, fontsize=20, color='black', ha='center', va='center')
     ax.gridlines(draw_labels=True, linestyle='-', lw=0)  # `-` ensures there is no line drawn
     ax.xaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f'{x:.1f}°E'))  # Format longitude labels
     ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda y, _: f'{y:.1f}°N'))  # Format latitude labels

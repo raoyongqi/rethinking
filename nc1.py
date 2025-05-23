@@ -227,7 +227,7 @@ def extract_tiff_data(tiff_file, df, lat_range=5.0, lon_range=5.0):
     
     return tiff_column
 excluded_files = ['pct_clay.tif', 'dom_mu.tif', 'awt_soc.tif', 's_sand.tif', 't_sand.tif']
-tiff_files = ['new/hand.tif'] + [os.path.join(tif_folder, f) for f in os.listdir(tif_folder) 
+tiff_files =  [os.path.join(tif_folder, f) for f in os.listdir(tif_folder) 
              if f.endswith('.tif') and f not in excluded_files]
 
 # 遍历所有的.tif文件并提取数据
