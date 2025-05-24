@@ -1,3 +1,8 @@
+library(dplyr)
+library(tidyverse)
+library(seminr)
+library(DiagrammeR)
+library(glue)
 plot_object <- 
   'digraph G {
     // general graph settings
@@ -5,7 +10,7 @@ plot_object <-
       charset = "UTF-8",
       layout = dot,
       label = "",
-      fontsize = 24,
+      fontsize = 27,
       fontname = "helvetica",
       rankdir = LR,
       labelloc = t
@@ -19,21 +24,21 @@ plot_object <-
         color = black,
         fillcolor = lightcyan,
         style = filled,
-        fontsize = 20,
+        fontsize = 27,
         height = 1.6,
-        width = 2,
+        width = 2.5,
         fontname = "helvetica",
         fixedsize = true
       ]
       Climate
       Geography
       Soil [label="Soil\nr²=0.164"]
-      Pathogen_Load [label="Pathogen_Load\nr²=0.005"]
+      PathogenLoad [label="Pathogen\nLoad\nr²=0.005"]
 
       // 结构模型路径（根据系数值设置线条粗细）
       edge [
         color = black,
-        fontsize = 20,
+        fontsize = 27,
         fontname = "helvetica",
         dir = both,
         arrowhead = normal,
@@ -42,9 +47,9 @@ plot_object <-
       ]
       Climate -> Soil [label="β=0.311", penwidth=2] 
       Geography -> Soil [label="β=0.804", penwidth=4]  // 系数>0.8加粗
-      Climate -> Pathogen_Load [label="β=-0.101", penwidth=2, style=dashed]
-      Geography -> Pathogen_Load [label="β=-0.089", penwidth=2, style=dashed]
-      Soil -> Pathogen_Load [label="β=-0.111", penwidth=2, style=dashed]
+      Climate -> PathogenLoad [label="β=-0.101", penwidth=2, style=dashed]
+      Geography -> PathogenLoad [label="β=-0.089", penwidth=2, style=dashed]
+      Soil -> PathogenLoad [label="β=-0.111", penwidth=2, style=dashed]
     }
 
     // 测量模型
@@ -54,19 +59,19 @@ plot_object <-
         color = dimgray,
         fillcolor = lightgoldenrodyellow,
         style = filled,
-        fontsize = 20,
-        height = 0.6,
+        fontsize = 27,
+        height = 0.8,
         width = 8,
         fontname = "helvetica",
         fixedsize = true
       ]
       // 观测变量列表...
-      Solar_Radiation; Precipitation_of_Wettest_Month; /* 其他变量... */ Pathogen_Load
+      Solar_Radiation; Precipitation_of_Wettest_Month; /* 其他变量... */ PathogenLoad
 
       // 测量模型路径（根据因子负荷设置线条粗细）
       edge [
         color = blue,
-        fontsize = 20,
+        fontsize = 27,
         fontname = "helvetica",
         minlen = 1,
         dir = both,
@@ -102,4 +107,4 @@ plot_object %>%
   DiagrammeRsvg::export_svg() %>% 
   charToRaw() %>% 
   rsvg::rsvg_png("path_model.png", width = 1200, height = 600)
-plot_object
+

@@ -1,132 +1,154 @@
-
-
 import itertools
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import ExtraTreesRegressor  # 改为导入ExtraTrees
 import pandas as pd
 import numpy as np
-
-import scienceplots
-import seaborn as sns
-from sklearn.metrics import mean_squared_error, r2_score
 import matplotlib.pyplot as plt
+import seaborn as sns
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error
+import json
+import pickle
 
-
+# 加载数据
 file_path = 'data/selection.csv'
 data = pd.read_csv(file_path)
-
-
-
 feature_columns = [col for col in data.columns if col != 'pathogen load']
-
-
 X = data[feature_columns]
-
-
 y = data['pathogen load']
 
+# 划分数据集
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=42)
-
 X_train, X_valid, y_train, y_valid = train_test_split(X_train, y_train, test_size=1/9, random_state=42)
 
+# 定义超参数网格（针对ExtraTrees调整）
+hyperparams = {
+    'n_estimators': list(range(20, 48, 6)),
+    'min_samples_split': list(range(6, 12, 1)),
+
+}
+
+fixed_hyperparams = {
+    'random_state': 42,
+    'n_jobs': -1  # 使用所有CPU核心
+}
+
+def save_results(all_mses, best_hyperparams, best_model, filename_prefix="data/et_results"):  # 修改文件名前缀
+    np.save(f"{filename_prefix}_mses.npy", np.array(all_mses))
+    with open(f"{filename_prefix}_best_params.json", 'w') as f:
+        json.dump(best_hyperparams, f, indent=4)
+    with open(f"{filename_prefix}_best_model.pkl", 'wb') as f:
+        pickle.dump(best_model, f)
+    print(f"Results saved to {filename_prefix}_*.npy/.json/.pkl")
+
+def load_results(filename_prefix="data/et_results"):  # 修改文件名前缀
+    try:
+        all_mses = np.load(f"{filename_prefix}_mses.npy").tolist()
+        with open(f"{filename_prefix}_best_params.json", 'r') as f:
+            best_hyperparams = json.load(f)
+        with open(f"{filename_prefix}_best_model.pkl", 'rb') as f:
+            best_model = pickle.load(f)
+        print("Loaded previous results successfully")
+        return all_mses, best_hyperparams, best_model
+    except FileNotFoundError:
+        print("No previous results found")
+        return None, None, None
+
+def plot_heatmap(hyperparams, all_mses, best_hyperparams, filename="data/et_heatmap.png"):
+    # 准备数据（选择前两个参数进行可视化）
+    param1 = list(hyperparams.keys())[0]
+    param2 = list(hyperparams.keys())[1]
+    values1 = hyperparams[param1]
+    values2 = hyperparams[param2]
+    
+    # 计算每个参数组合的数量
+    n_params = len(hyperparams)
+    other_params_fixed = {k: best_hyperparams[k] for k in hyperparams if k not in [param1, param2]}
+    
+    # 提取相关MSE值
+    mse_values = []
+    for v1 in values1:
+        row = []
+        for v2 in values2:
+            current_params = {param1: v1, param2: v2, **other_params_fixed}
+            # 找到匹配的参数组合
+            for i, params in enumerate(itertools.product(*hyperparams.values())):
+                param_dict = dict(zip(hyperparams.keys(), params))
+                if all(param_dict[k] == current_params[k] for k in current_params):
+                    row.append(all_mses[i])
+                    break
+        mse_values.append(row)
+    
+    mse_matrix = np.array(mse_values)
+    plt.rcParams["font.family"] = "Arial"
+    plt.rcParams["font.size"] = 20
+    plt.figure(figsize=(12, 8))
+    ax = sns.heatmap(mse_matrix, 
+                    annot=True, 
+                    fmt=".1f",
+                    cmap="YlGnBu_r",
+                    xticklabels=values2,
+                    yticklabels=values1,
+                    cbar_kws={'label': 'MSE'})
+    
+    # 标记最佳参数
+    best_idx1 = values1.index(best_hyperparams[param1])
+    best_idx2 = values2.index(best_hyperparams[param2])
+    ax.add_patch(plt.Rectangle((best_idx2, best_idx1), 1, 1, fill=False, edgecolor='red', lw=3))
+    ax.text(best_idx2+0.3, best_idx1+0.3, '*', 
+           ha='center', va='center', color='red', fontsize=20)
+    
+    ax.set_xlabel(param2, )
+    ax.set_ylabel(param1, )
+    ax.set_title('ExtraTrees Hyperparameter Tuning', fontsize=16)
+    plt.tight_layout()
+    plt.savefig(filename, dpi=300)
+    plt.show()
+
 def holdout_grid_search(clf, X_train, y_train, X_valid, y_valid, hyperparams, fixed_hyperparams={}):
-
     all_mses = []
-
     best_estimator = None
-
     best_hyperparams = {}
+    best_score = float('inf')
     
-    best_score = 1000
-
-    lists = hyperparams.values()
-    
-    param_combinations = list(itertools.product(*lists))
-
-    total_param_combinations = len(param_combinations)
+    param_combinations = list(itertools.product(*hyperparams.values()))
+    total = len(param_combinations)
 
     for i, params in enumerate(param_combinations, 1):
-
-        param_dict = {}
-        for param_index, param_name in enumerate(hyperparams):
-            param_dict[param_name] = params[param_index]
-            
+        param_dict = dict(zip(hyperparams.keys(), params))
         estimator = clf(**param_dict, **fixed_hyperparams)
-
         estimator.fit(X_train, y_train)
-        
         preds = estimator.predict(X_valid)
-        
-        estimator_score = mean_squared_error(y_valid, preds)
+        mse = mean_squared_error(y_valid, preds)
+        all_mses.append(mse)
 
-        all_mses.append(estimator_score)
+        print(f'[{i}/{total}] {param_dict}')
+        print(f'Val MSE: {mse:.4f}\n')
 
-        print(f'[{i}/{total_param_combinations}] {param_dict}')
-        print(f'Val MSE: {estimator_score}\n')
-
-        if estimator_score < best_score:
-            best_score = estimator_score
+        if mse < best_score:
+            best_score = mse
             best_estimator = estimator
             best_hyperparams = param_dict
 
     best_hyperparams.update(fixed_hyperparams)
-    
-    
     return all_mses, best_estimator, best_hyperparams
 
-
-hyperparams = {
-    'max_depth': [10, 20, 30, 50, 75, 100, 150, 200, 300, 400, 500, 600, 700, 1000],
-    'n_estimators': [50, 100, 150, 200, 300, 400, 500]
-}
-
-fixed_hyperparams = {
-    'random_state': 42
-}
+def extra_trees_grid_search(X_train, y_train, X_valid, y_valid, hyperparams, fixed_hyperparams={}):
 
 
-def random_forest_grid_search(X_train, y_train, X_valid, y_valid, hyperparams, fixed_hyperparams={}):
-
-    rf = RandomForestRegressor
-
-    all_mses, best_rf, best_hyperparams = holdout_grid_search(rf, X_train, y_train, X_valid, y_valid, hyperparams, fixed_hyperparams)
-
-    print(f"Best hyperparameters:\n{best_hyperparams}")
+    all_mses, best_hyperparams, best_et = load_results()
+    
+    if all_mses is None:
+        et = ExtraTreesRegressor
+        all_mses, best_et, best_hyperparams = holdout_grid_search(
+            et, X_train, y_train, X_valid, y_valid, hyperparams, fixed_hyperparams)
         
-    best_hyperparams.update(fixed_hyperparams)
+        print(f"Best hyperparameters:\n{best_hyperparams}")
+        save_results(all_mses, best_hyperparams, best_et)
     
-    return all_mses, best_rf, best_hyperparams
+    return all_mses, best_et, best_hyperparams
 
-num_comps = np.arange(1, len(data.columns))
+all_mses, best_et, best_hyperparams = extra_trees_grid_search(
+    X_train, y_train, X_valid, y_valid, hyperparams, fixed_hyperparams=fixed_hyperparams)
 
-
-
-all_mses, best_rf, best_hyperparams = random_forest_grid_search(X_train, y_train, X_valid, y_valid, hyperparams, fixed_hyperparams=fixed_hyperparams)
-
-
-def plot_rf_metric(scores, objective, yLabel, filename="data/rf_metric.png"):
-    font_size = 30
-    plt.rcParams.update({
-        'font.size': font_size,
-        'font.family': 'Arial'
-    })
-    fig, ax = plt.subplots(figsize=(12, 6))  # 设置宽高比为 2:1
-    
-    num_configs = np.arange(1, len(scores) + 1)
-    ax.plot(num_configs, scores, '-o', color='gray', alpha=0.8, linewidth=4)
-
-    idx = np.argmin(scores) if objective == 'min' else np.argmax(scores)
-    ax.plot(num_configs[idx], scores[idx], 'P', color='red', ms=10)
-
-    ax.set_xlabel("Configuration number", fontsize=22)  # 增大 X 轴标签字体
-    ax.set_ylabel(yLabel, fontsize=22)  # 增大 Y 轴标签字体
-
-    ax.tick_params(axis='both', labelsize=20)  # 增大坐标轴刻度字体
-
-    plt.tight_layout()  # 防止标签被裁剪
-    plt.savefig(filename, dpi=300)  # 保存高分辨率图片
-    
-    plt.show()
-        
-
-plot_rf_metric(all_mses, 'min', 'MSE')
+# 绘制热力图
+plot_heatmap(hyperparams, all_mses, best_hyperparams)

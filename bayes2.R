@@ -99,6 +99,14 @@ library(ggridges)
 plot$parameter <- factor(plot$parameter, levels = unique(plot$parameter))  # 保持原顺序
 plot$parameter
 levels(plot$parameter) <- gsub('"', '', levels(plot$parameter))  # 去掉可能的引号字符
+parameter_means <- aggregate(x ~ parameter, data = plot, FUN = mean)
+
+# 按照均值排序
+parameter_order <- parameter_means[order(parameter_means$x), "parameter"]
+
+plot$parameter <- factor(plot$parameter, levels = parameter_order)
+
+
 p <- ggplot(plot, aes(x = x, y = parameter, height = scaled_density, fill = ifelse(x >= 0, "Positive", "Negative"))) +
   geom_density_ridges(stat = "identity") +
   theme_ridges() + # 设置主题
@@ -111,7 +119,8 @@ p <- ggplot(plot, aes(x = x, y = parameter, height = scaled_density, fill = ifel
     axis.text.y = element_text(size = 25),  # 增大字体
   )+
   scale_y_discrete(labels = function(x) gsub("`", "", x)) 
-
+p
+getwd()
 ggsave("bayes_plot.png", p, width = 12, height = 8, dpi = 600)
 
 
@@ -165,6 +174,7 @@ custom_colnames <- function(colnames) {
 
 library(stringr)
 coef_summary_df$Predictor <- str_remove_all(coef_summary_df$Predictor, "`")
+coef_summary_df <- coef_summary_df[order(coef_summary_df$Estimate, decreasing = FALSE), ]
 write.xlsx(coef_summary_df, "coef_summary.xlsx", rowNames = FALSE)
 getwd()
 latex_table <- xtable(coef_summary_df,

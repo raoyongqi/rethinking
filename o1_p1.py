@@ -26,7 +26,6 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 
 # 定义目标函数
 def objective(trial):
-    # 定义超参数搜索空间
     learning_rate = trial.suggest_loguniform('learning_rate', 1e-5, 1e-1)
     num_layers = trial.suggest_int('num_layers', 3, 6)  # 隐藏层数量
     num_neurons = trial.suggest_categorical('num_neurons', [64, 128, 256])  # 每层神经元数量
@@ -77,8 +76,25 @@ print("  Params: ")
 for key, value in trial.params.items():
     print("    {}: {}".format(key, value))
 
-import optuna.visualization as vis
+# import optuna.visualization as vis
+trials_df = study.trials_dataframe()  # 原始数据（包含可能的 NaN）
+trials_df_cleaned = trials_df.dropna()  # 删除无效值（未完成的试验）
+trials_df_cleaned.to_csv("data/trials_cleaned.csv", index=False)
 
+import json
+
+param_importances = optuna.importance.get_param_importances(study)
+
+# 将参数重要性保存为 JSON 文件
+with open('param_importances.json', 'w') as f:
+    json.dump(param_importances, f, indent=4)
+
+print("参数重要性已保存为 param_importances.json")
+
+
+trials_df.to_csv("data/trials_raw.csv", index=False)
+
+# 保存清理后的数据
 # fig_importances = vis.plot_param_importances(study)
 # fig_importances.update_layout(
 #     font=dict(
@@ -93,7 +109,7 @@ import optuna.visualization as vis
 
 # fig_importances.show()
 
-fig_plot_parallel_coordinate = vis.plot_parallel_coordinate(study)
+# fig_plot_parallel_coordinate = vis.plot_parallel_coordinate(study)
 # fig_plot_parallel_coordinate.update_layout(
 #     font=dict(
 #         family="Arial",  # 设置字体
@@ -109,17 +125,17 @@ fig_plot_parallel_coordinate = vis.plot_parallel_coordinate(study)
 #     )
 # )
 
-import json
+# import json
 
-# 获取当前的 layout 配置
-layout_config = fig_plot_parallel_coordinate.layout
+# # 获取当前的 layout 配置
+# layout_config = fig_plot_parallel_coordinate.layout
 
-# 转换为可序列化的字典
-layout_dict = layout_config.to_plotly_json()
+# # 转换为可序列化的字典
+# layout_dict = layout_config.to_plotly_json()
 
-# 保存到 JSON 文件
-with open('parallel_coords_layout.json', 'w') as f:
-    json.dump(layout_dict, f, indent=4)  # indent=4 让文件更易读
+# # 保存到 JSON 文件
+# with open('parallel_coords_layout.json', 'w') as f:
+#     json.dump(layout_dict, f, indent=4)  # indent=4 让文件更易读
 # fig_plot_parallel_coordinate.update_layout(font=dict(size=24))
 # fig_plot_parallel_coordinate.show()
 
