@@ -14,16 +14,13 @@ from sklearn.model_selection import train_test_split
 file_path = 'data/selection.csv'
 data = pd.read_csv(file_path)
 
-# Prepare features and target
 feature_columns = [col for col in data.columns if col != 'pathogen load']
 X = data[feature_columns]
 y = data['pathogen load']
 
-# Train-test split
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=42)
 X_train, X_valid, y_train, y_valid = train_test_split(X_train, y_train, test_size=1/9, random_state=42)
 
-# Grid search function
 def holdout_grid_search(clf, X_train, y_train, X_valid, y_valid, hyperparams, fixed_hyperparams={}):
     all_mses = []
     best_estimator = None
@@ -53,7 +50,6 @@ def holdout_grid_search(clf, X_train, y_train, X_valid, y_valid, hyperparams, fi
     best_hyperparams.update(fixed_hyperparams)
     return all_mses, best_estimator, best_hyperparams
 
-# Function for grid search on Random Forest
 def random_forest_grid_search(X_train, y_train, X_valid, y_valid, hyperparams, fixed_hyperparams={}):
     rf = RandomForestRegressor
     all_mses, best_rf, best_hyperparams = holdout_grid_search(rf, X_train, y_train, X_valid, y_valid, hyperparams, fixed_hyperparams)
@@ -61,7 +57,6 @@ def random_forest_grid_search(X_train, y_train, X_valid, y_valid, hyperparams, f
     best_hyperparams.update(fixed_hyperparams)
     return all_mses, best_rf, best_hyperparams
 
-# Hyperparameters for grid search
 hyperparams = {
     'max_depth': [10, 20, 30, 50, 75, 100, 150, 200, 300, 400, 500, 600, 700, 1000],  # Tree depth
     'n_estimators': [50, 100, 150, 200, 300, 400, 500]  # Number of trees
@@ -76,7 +71,6 @@ all_mses, best_rf, best_hyperparams = random_forest_grid_search(X_train, y_train
 
 # TPE Optimization with Optuna
 def objective(trial):
-    # Define the hyperparameters to optimize
     max_depth = trial.suggest_int('max_depth', 10, 500)
     n_estimators = trial.suggest_int('n_estimators', 50, 500)
 
@@ -110,7 +104,6 @@ preds_optuna = best_rf_optuna.predict(X_valid)
 mse_optuna = mean_squared_error(y_valid, preds_optuna)
 print(f"Validation MSE (TPE Optimized): {mse_optuna}")
 
-# Plot function to visualize the results
 def plot_rf_metric(scores, objective, yLabel, filename="data/rf_metric.png"):
     with plt.style.context('science'):
         fig, ax = plt.subplots(figsize=(12, 6))  # Set the aspect ratio

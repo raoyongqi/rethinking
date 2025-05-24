@@ -62,16 +62,14 @@ def objective(trial):
     
     # 验证模型
     y_pred = model.predict(X_test)
-    y_pred = y_pred.flatten()  # 将预测结果展平为一维数组
+    y_pred = y_pred.flatten()
     r2 = r2_score(y_test, y_pred)
     
     return r2
 
-# 创建 Optuna 研究对象
-study = optuna.create_study(direction='maximize')  # 优化目标是最大化 R²
+study = optuna.create_study(direction='maximize')  
 study.optimize(objective, n_trials=30, timeout=300)
 
-# 输出最优超参数
 print("Best trial:")
 trial = study.best_trial
 print("  Value: ", trial.value)
@@ -79,22 +77,56 @@ print("  Params: ")
 for key, value in trial.params.items():
     print("    {}: {}".format(key, value))
 
-# 可视化优化过程
 import optuna.visualization as vis
 
-fig_importances = vis.plot_param_importances(study)
+# fig_importances = vis.plot_param_importances(study)
+# fig_importances.update_layout(
+#     font=dict(
+#         family="Arial",  # 设置字体
+#         size=20,        # 全局字体大小
+#     ),
+#     width=1200,         # 调整宽度（可选）
+#     height=800          # 调整高度（可选）
+# )
+# fig_importances.update_layout(font=dict(size=25))
+# fig_importances.write_image("data/param_importances.png", scale=2)  # scale提高分辨率
 
-fig_importances.update_layout(font=dict(size=25))
-fig_importances.show()
+# fig_importances.show()
 
 fig_plot_parallel_coordinate = vis.plot_parallel_coordinate(study)
-fig_plot_parallel_coordinate.update_layout(font=dict(size=25))
-fig_plot_parallel_coordinate.show()
+# fig_plot_parallel_coordinate.update_layout(
+#     font=dict(
+#         family="Arial",  # 设置字体
+#         size=20,        # 全局字体大小
+#     ),
+#     width=1200,         
+#     height=800,
+#         xaxis=dict(
+#         tickangle=0 
+#     ),
+#         margin=dict(  
+#         b=25
+#     )
+# )
+
+import json
+
+# 获取当前的 layout 配置
+layout_config = fig_plot_parallel_coordinate.layout
+
+# 转换为可序列化的字典
+layout_dict = layout_config.to_plotly_json()
+
+# 保存到 JSON 文件
+with open('parallel_coords_layout.json', 'w') as f:
+    json.dump(layout_dict, f, indent=4)  # indent=4 让文件更易读
+# fig_plot_parallel_coordinate.update_layout(font=dict(size=24))
+# fig_plot_parallel_coordinate.show()
 
 
-fig_plot_contour = vis.plot_contour(study)
-fig_plot_contour.update_layout(font=dict(size=25))
-fig_plot_contour.show()
+# fig_plot_contour = vis.plot_contour(study)
+# fig_plot_contour.update_layout(font=dict(size=25))
+# fig_plot_contour.show()
 
 # vis.plot_intermediate_values(study).show()
 

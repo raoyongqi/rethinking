@@ -1,14 +1,14 @@
 library(seminr)
 getwd()
 
-
+rm(list = ls())
 file_path = "data/selection.csv"
 
 data <- read.csv(file_path)
 library(dplyr)
 # install.packages("sjSDM")
 data <- data %>%
-  rename(`Pathogen Load` = pathogen.load)
+  rename(`PathogenLoad` = pathogen.load)
 
 data <- data %>%
   rename(`hand` = hand_500m_china_03_08)
@@ -25,108 +25,123 @@ if ("hwsd_soil_clm_res_pct_clay" %in% colnames(df)) {
   df <- df %>%
     rename(`pct_clay` = hwsd_soil_clm_res_pct_clay)
 }
-# colnames(data) <- c(
-#   "Latitude",                                       # lat
-#   "Longitude",                                      # lon
-#   "Area-weighted soil organic carbon content",      # awt_soc
-#   "Dominant mapping unit ID",                       # dom_mu
-#   "Soil Sand",                                      # s_sand
-#   "Topsoil Sand",                                   # t_sand
-#   "Height Above the Nearest Drainage",              # hand
-#   "Solar Radiation",                                # srad
-#   "Precipitation of Wettest Month",                 # bio_13
-#   "Precipitation Seasonality",                      # bio_15
-#   "Precipitation of Warmest Quarter",               # bio_18
-#   "Precipitation of Coldest Quarter",               # bio_19
-#   "Isothermality",                                  # bio_3
-#   "Min Temperature of Coldest Month",               # bio_6
-#   "Mean Temperature of Wettest Quarter",            # bio_8
-#   "Wind Speed",                                     # wind
-#   "Pathogen Load"                                   # Pathogen Load
-# )
-# 
-# Climate <- c(
-#   "Solar Radiation",                            # srad
-#   "Precipitation of Wettest Month",             # bio_13
-#   "Precipitation Seasonality",                  # bio_15
-#   "Precipitation of Warmest Quarter",           # bio_18
-#   "Precipitation of Coldest Quarter",           # bio_19
-#   "Isothermality",                              # bio_3
-#   "Min Temperature of Coldest Month",           # bio_6
-#   "Mean Temperature of Wettest Quarter",        # bio_8
-#   "Wind Speed"                                  # wind
-# )
-# 
-# Soil <- c(
-#   "Area-weighted Soil Organic Carbon Content",  # awt soc
-#   "Dominant Mapping Unit ID",                   # dom mu
-#   "Soil Sand",                                  # s_sand
-#   "Topsoil Sand"                                # t_sand
-# )
-# 
-# Geo <- c(
-#   "Latitude",                                   # lat
-#   "Longitude",                                  # lon
-#   "Height Above the Nearest Drainage"           # hand
-# )
-columns <- c("lat", "lon", "awt_soc", "dom_mu", "s_sand", "t_sand", 
-             "hand", "srad", "bio_13", "bio_15", "bio_18", "bio_19", 
-             "bio_3", "bio_6", "bio_8", "wind")
+colnames(data) <- c(
+  "Latitude",                                   # lat
+  "Longitude",                                  # lon
+  "Area_weighted_Soil_Organic_Carbon_Content",  # awt soc
+  "Dominant_Mapping_Unit_ID",                   # dom mu
+  "Soil_Sand",                                  # s_sand
+  "Topsoil_Sand",                               # t_sand
+  "Height_Above_the_Nearest_Drainage",          # hand
+  "Solar_Radiation",                            # srad
+  "Precipitation_of_Wettest_Month",             # bio_13
+  "Precipitation_Seasonality",                  # bio_15
+  "Precipitation_of_Warmest_Quarter",           # bio_18
+  "Precipitation_of_Coldest_Quarter",           # bio_19
+  "Isothermality",                              # bio_3
+  "Min_Temperature_of_Coldest_Month",           # bio_6
+  "Mean_Temperature_of_Wettest_Quarter",        # bio_8
+  "Wind_Speed",                                 # wind
+  "Pathogen_Load"                               # Pathogen Load
+)
+
+Climate <- c("Solar_Radiation", "Precipitation_of_Wettest_Month", "Precipitation_Seasonality", 
+             "Precipitation_of_Warmest_Quarter", "Precipitation_of_Coldest_Quarter", 
+             "Isothermality", "Min_Temperature_of_Coldest_Month", "Mean_Temperature_of_Wettest_Quarter", "Wind_Speed")
 
 
-Climate <- c("srad", "bio_13", "bio_15", "bio_18", "bio_19", 
-             "bio_3", "bio_6", "bio_8", "wind")
+Soil <- c("Area_weighted_Soil_Organic_Carbon_Content", "Dominant_Mapping_Unit_ID", "Soil_Sand", "Topsoil_Sand")
 
-Soil <- c("awt_soc", "dom_mu", "s_sand", "t_sand")
-
-Geo <- c("lat", "lon", "hand")
+Geography <- c("Latitude", "Longitude", "Height_Above_the_Nearest_Drainage")
 
 
 measurements <- constructs(
   composite("Climate", Climate),  # 定义反射性构念 "Climate"
   composite("Soil", Soil),  # 定义复合构念 "Soil"
-  composite("Geo", Geo),  # 定义复合构念 "Geo"
-  composite("Pathogen Load",  single_item("Pathogen Load"))
+  composite("Geography", Geography),  # 定义复合构念 "Geo"
+  reflective("Pathogen_Load",  single_item("Pathogen_Load"))
 )
-
-
-str(multi_items("CUEX", 1:3)
-)
-
 structure <- relationships(
-  paths(from = c("Climate", "Geo"), to = "Soil"),  # 气候和地理影响土壤
-  
-  paths(from = c("Climate", "Geo", "Soil"), to = "Pathogen Load")  # 气候、地理和土壤共同影响 Pathogen Load
+  paths(to = "Pathogen_Load",
+        from = c("Climate", "Geography", "Soil","Geography*Soil"))
 )
 
+source("C:/Users/r/Desktop/rethink_resample/seminrvis.R")
 
-thm <- seminr_theme_create(manifest.reflective.shape =  "ellipse",
-                           manifest.compositeA.shape =  "hexagon",
-                           manifest.compositeB.shape =  "box",
-                           construct.reflective.shape = "hexagon",
-                           construct.compositeA.shape = "box",
-                           construct.compositeB.shape = "ellipse",
-                           plot.rounding = 3, plot.adj = FALSE, 
-                           sm.node.fill = "cadetblue1",
-                           mm.edge.label.fontsize=14,
-                           sm.edge.label.fontsize=15,
+my_theme <- create_theme(item_style = createItemStyle(
+    fontsize = 20, height = 0.6, width = 8,fill = "lightgoldenrodyellow"),
 
-                           
-                           sm.node.label.fontsize	=15,
-                           mm.node.label.fontsize	=14,
-                           mm.node.fill = "white")
+    # we can style the construct appearance
+    construct_style = createConstructStyle(
+      fontsize = 20, height = 1.6, width = 2,fill = "lightcyan"),
+    outer_weight_style = createOuterWeightStyle(color = "blue", fontsize = 20),
+    
+    inner_weight_style = createInnerWeightStyle(color = "black", fontsize = 20)
+)
 
-# 估计 PLS 模型
+structure
 pls_model <- estimate_pls(data = data, measurements, structure)
+plot_object
 pls_model
-boot_estimates <- bootstrap_model(pls_model, nboot = 1000, cores = 2)
+plot_object <- pls_model %>% 
+  plot_model(title = "", theme = my_theme) %>% 
+  grViz()
+plot_object <- pls_model %>% 
+  plot_model(title = "", theme = my_theme)
+plot_object
+# 保存为PNG的可靠方法
+tmp_svg <- tempfile(fileext = ".svg")
+plot_object %>% 
+  DiagrammeRsvg::export_svg() %>% 
+  writeLines(tmp_svg)
+
+rsvg::rsvg_png(
+  tmp_svg, 
+  "model_plot.png", 
+  width = 1200, 
+  height = 1200
+)
+plot_object
 # graph <- seminr::seminr_graph(pls_model, theme = thm)
+# 
+# boot_estimates <- bootstrap_model(pls_model, nboot = 1000, cores = 2)
+# 
+# boot_estimates
 
 
-boot_estimates
 
+library(ggplot2)
+
+
+install.packages("C:/Users/r/Downloads/seminr-vis.zip", 
+                 repos = NULL, 
+                 type = "win.binary",
+                 dependencies = TRUE)
+str(boot_estimates)
+plot(boot_estimates, plottype = "boxplot", 
+     labels = rownames(boot_estimates$coefficients))
 
 # layout_matrix <- layout_as_tree(graph)
+install.packages("ggbiplot")
+my_plot <- recordPlot()
+library(devtools)
+install_github('zdk123/compPLS')
+boot_data <- as.data.frame(boot_estimates$bootCoeffs)
+boot_data_long <- stack(boot_data)
+boot_data <- as.data.frame(boot_estimates$bootCoeffs)
+class(boot_estimates$bootCoeffs)
+dim(boot_estimates$bootCoeffs)
+boot_data_long <- stack(boot_data)
+# 2. 创建ggplot对象
+library(ggplot2)
+gg_boot <- ggplot(boot_data_long, aes(x = ind, y = values)) +
+  geom_boxplot(fill = "lightblue", color = "blue") +
+  labs(title = "Bootstrap系数分布",
+       x = "预测变量",
+       y = "系数值") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        plot.title = element_text(hjust = 0.5, size = 14, face = "bold"))
 
 seminr_theme_set(thm)
 library(semPlot)
